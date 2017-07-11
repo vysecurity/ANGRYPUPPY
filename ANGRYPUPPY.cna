@@ -71,4 +71,96 @@ sub parseNodes {
 
 }
 
-parseNodes(getFileProper(script_resource("graphs"), "graph.json"));
+sub generateCypher {
+	# check in every beacon
+	@items = @();
+	foreach $session (beacons()){
+		if ("*" isin $session["user"]){
+			$user = substr($session["user"], 0, -2);
+		}
+
+		if (($user !isin @items)){
+			if ($session["user"] ne "SYSTEM"){
+				# if user is not in items
+				push(@items, $user);
+			}
+		}
+		if (($session["computer"] !isin @items)){
+			# if computer is not items
+			$computer = $session["computer"];
+			if ("*" isin $session["user"]){
+				push(@items, $computer);
+			}
+		}
+	}
+
+	
+	# QUERY for all nodes we have currently
+
+	$query = "MATCH (n) WHERE (";
+	foreach $a (@items){
+			$query = $query . "n.name =~ \"(?i)" . $a . "@.*\") OR ("; 	
+	}
+	$query = $query . ") RETURN n";
+
+	elog("\cB[*] Show all beacon nodes");
+	elog("\c9" . $query);
+
+	# QUERY for ALL paths from Current sessions
+
+	# WITH ['CONTEXJ','CONTEXP'] as samAccountNames
+	# UNWIND samAccountNames as userNames
+	# MATCH (n:User)
+	# WHERE n.name STARTS WITH userNames
+	# WITH n
+	# MATCH (g1:Group)
+	# WHERE g1.name STARTS WITH "DOMAIN ADMINS@"
+	# MATCH p = allShortestPaths((n)-[r:MemberOf|AdminTo|HasSession*1..]->(g1))
+	# RETURN p
+
+	$query = "WITH [";
+	foreach $a (@items){
+		$query = $query . "'" . $a . "',"; 
+	}
+	$query = substr($query, 0, -1);
+
+	$query = $query . "] as samAccountNames UNWIND samAccountNames as userNames MATCH (n) WHERE n.name STARTS WITH userNames WITH n MATCH (g1:Group) WHERE g1.name STARTS WITH \"DOMAIN ADMINS@\" MATCH p = allShortestPaths((n)-[r:MemberOf|AdminTo|HasSession*1..]->(g1)) RETURN p";
+
+	elog("\cB[*] Query all beacon nodes to Domain Admins");
+	elog("\c9" . $query);
+
+	# QUERY FOR SHORTEST PATH for ANGRYPUPPY
+
+	# WITH ['CONTEXJ','CONTEXP' ] as samAccountNames
+	# UNWIND samAccountNames as userNames
+	# MATCH (n:User)
+	# WHERE n.name STARTS WITH userNames
+	# WITH n
+	# MATCH (g1:Group)
+	# WHERE g1.name STARTS WITH "DOMAIN ADMINS@"
+	# MATCH p = allShortestPaths((n)-[r:MemberOf|AdminTo|HasSession*1..]->(g1))
+	# RETURN p
+	# ORDER BY LENGTH(p) ASC
+	# LIMIT 1
+
+	$query = "WITH [";
+	foreach $a (@items){
+		$query = $query . "'" . $a . "',"; 
+	}
+	$query = substr($query, 0, -1);
+
+	$query = $query . "] as samAccountNames UNWIND samAccountNames as userNames MATCH (n) WHERE n.name STARTS WITH userNames WITH n MATCH (g1:Group) WHERE g1.name STARTS WITH \"DOMAIN ADMINS@\" MATCH p = allShortestPaths((n)-[r:MemberOf|AdminTo|HasSession*1..]->(g1)) RETURN p ORDER BY LENGTH(p) ASC LIMIT 1";
+
+	elog("\cB[*] Query all beacon nodes to generate ANGRYPUPPY path");
+	elog("\c9" . $query);
+	
+}
+
+sub init {
+	# Initialise	
+	generateCypher()
+}
+
+init()
+
+#parseNodes(getFileProper(script_resource("graphs"), "graph.json"));
