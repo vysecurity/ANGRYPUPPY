@@ -108,7 +108,7 @@ sub generateCypher {
 
 	# QUERY for ALL paths from Current sessions
 
-	# WITH ['CONTEXJ','CONTEXP'] as samAccountNames
+	# WITH ['GBARNES','RL-DESKTOP18'] as samAccountNames
 	# UNWIND samAccountNames as userNames
 	# MATCH (n:User)
 	# WHERE n.name STARTS WITH userNames
@@ -131,7 +131,7 @@ sub generateCypher {
 
 	# QUERY FOR SHORTEST PATH for ANGRYPUPPY
 
-	# WITH ['CONTEXJ','CONTEXP' ] as samAccountNames
+	# WITH ['GBARNES','RL-DESKTOP18'] as samAccountNames
 	# UNWIND samAccountNames as userNames
 	# MATCH (n:User)
 	# WHERE n.name STARTS WITH userNames
