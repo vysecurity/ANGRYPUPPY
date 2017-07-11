@@ -82,14 +82,14 @@ sub generateCypher {
 		if (($user !isin @items)){
 			if ($session["user"] ne "SYSTEM"){
 				# if user is not in items
-				push(@items, $user);
+				push(@items, uc($user));
 			}
 		}
 		if (($session["computer"] !isin @items)){
 			# if computer is not items
 			$computer = $session["computer"];
 			if ("*" isin $session["user"]){
-				push(@items, $computer);
+				push(@items, uc($computer));
 			}
 		}
 	}
