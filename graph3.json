@@ -1,0 +1,276 @@
+{
+  "nodes": [
+    {
+      "id": 2474,
+      "type": "Group",
+      "label": "IT_ONCALL@DOMAIN.TLD",
+      "glyphs": {},
+      "folded": {
+        "nodes": {},
+        "edges": {}
+      },
+      "x": 806.1327245971497,
+      "y": 975.8109564018594,
+      "type_group": true,
+      "size": 5,
+      "degree": 2,
+      "icon": {
+        "font": "FontAwesome",
+        "content": "",
+        "scale": 1.5,
+        "color": "#DBE617"
+      },
+      "fa2_x": -0.39674219489097595,
+      "fa2_y": 3.0425822734832764,
+      "dn_x": null,
+      "dn_y": null,
+      "dn_size": 23.23511824330751,
+      "dn": null,
+      "dagre_x": null,
+      "dagre_y": null
+    },
+    {
+      "id": 2481,
+      "type": "Group",
+      "label": "DOMAIN ADMINS@DOMAIN.TLD",
+      "glyphs": {},
+      "folded": {
+        "nodes": {},
+        "edges": {}
+      },
+      "x": 741.2134516760682,
+      "y": -13.573444047103635,
+      "type_group": true,
+      "size": 1,
+      "degree": 1,
+      "icon": {
+        "font": "FontAwesome",
+        "content": "",
+        "scale": 1.5,
+        "color": "#DBE617"
+      },
+      "fa2_x": -0.9889973998069763,
+      "fa2_y": -5.983520984649658,
+      "dn_x": null,
+      "dn_y": null,
+      "dn_size": 13.941070945984507,
+      "dn": null,
+      "dagre_x": null,
+      "dagre_y": null
+    },
+    {
+      "id": 2553,
+      "type": "User",
+      "label": "BINSIGHT2@DOMAIN.TLD",
+      "glyphs": {},
+      "folded": {
+        "nodes": {},
+        "edges": {}
+      },
+      "x": 828.8385285806846,
+      "y": 282.99568655143275,
+      "type_user": true,
+      "size": 5,
+      "degree": 2,
+      "icon": {
+        "font": "FontAwesome",
+        "content": "",
+        "scale": 1.5,
+        "color": "#17E625"
+      },
+      "fa2_x": -0.18959830701351166,
+      "fa2_y": -3.2779359817504883,
+      "dn_x": null,
+      "dn_y": null,
+      "dn_size": 23.23511824330751,
+      "dn": null,
+      "dagre_x": null,
+      "dagre_y": null
+    },
+    {
+      "id": 2609,
+      "type": "User",
+      "label": "USER1@DOMAIN.TLD",
+      "glyphs": {},
+      "folded": {
+        "nodes": {},
+        "edges": {}
+      },
+      "x": 802.0475556108461,
+      "y": 1292.2788594035642,
+      "type_user": true,
+      "size": 1,
+      "degree": 1,
+      "icon": {
+        "font": "FontAwesome",
+        "content": "",
+        "scale": 1.5,
+        "color": "#17E625"
+      },
+      "fa2_x": -0.43401098251342773,
+      "fa2_y": 5.9297027587890625,
+      "dn_x": null,
+      "dn_y": null,
+      "dn_size": 13.941070945984507,
+      "dn": null,
+      "dagre_x": null,
+      "dagre_y": null
+    },
+    {
+      "id": 2946,
+      "type": "Computer",
+      "label": "NETWRIX.DOMAIN.TLD",
+      "glyphs": {},
+      "folded": {
+        "nodes": {},
+        "edges": {}
+      },
+      "x": 822.1280960862971,
+      "y": 630.0853633572298,
+      "type_computer": true,
+      "size": 5,
+      "degree": 2,
+      "icon": {
+        "font": "FontAwesome",
+        "content": "",
+        "scale": 1.2,
+        "color": "#E67873"
+      },
+      "fa2_x": -0.2508172392845154,
+      "fa2_y": -0.11145462095737457,
+      "dn_x": null,
+      "dn_y": null,
+      "dn_size": 23.23511824330751,
+      "dn": null,
+      "dagre_x": null,
+      "dagre_y": null
+    }
+  ],
+  "edges": [
+    {
+      "id": 10114,
+      "type": "tapered",
+      "source": 2946,
+      "target": 2553,
+      "label": "HasSession",
+      "size": 1,
+      "points": {
+        "0": {
+          "x": 100,
+          "y": 0
+        },
+        "1": {
+          "x": 125,
+          "y": 0
+        },
+        "2": {
+          "x": 150,
+          "y": 0
+        }
+      }
+    },
+    {
+      "id": 18032,
+      "type": "tapered",
+      "source": 2553,
+      "target": 2481,
+      "label": "MemberOf",
+      "size": 1,
+      "points": {
+        "0": {
+          "x": 150,
+          "y": 0
+        },
+        "1": {
+          "x": 175,
+          "y": 0
+        },
+        "2": {
+          "x": 200,
+          "y": 0
+        }
+      }
+    },
+    {
+      "id": 18302,
+      "type": "tapered",
+      "source": 2609,
+      "target": 2474,
+      "label": "MemberOf",
+      "size": 1,
+      "points": {
+        "0": {
+          "x": 0,
+          "y": 0
+        },
+        "1": {
+          "x": 25,
+          "y": 0
+        },
+        "2": {
+          "x": 50,
+          "y": 0
+        }
+      }
+    },
+    {
+      "id": 20426,
+      "type": "tapered",
+      "source": 2474,
+      "target": 2946,
+      "label": "AdminTo",
+      "size": 1,
+      "points": {
+        "0": {
+          "x": 50,
+          "y": 0
+        },
+        "1": {
+          "x": 75,
+          "y": 0
+        },
+        "2": {
+          "x": 100,
+          "y": 0
+        }
+      }
+    }
+  ],
+  "spotlight": {
+    "2474": [
+      "IT_ONCALL@DOMAIN.TLD",
+      0,
+      "",
+      "Group",
+      ""
+    ],
+    "2481": [
+      "DOMAIN ADMINS@DOMAIN.TLD",
+      0,
+      "",
+      "Group",
+      ""
+    ],
+    "2553": [
+      "BINSIGHT2@DOMAIN.TLD",
+      0,
+      "",
+      "User",
+      ""
+    ],
+    "2609": [
+      "USER1@DOMAIN.TLD",
+      0,
+      "",
+      "User",
+      ""
+    ],
+    "2946": [
+      "NETWRIX.DOMAIN.TLD",
+      0,
+      "",
+      "Computer",
+      ""
+    ]
+  }
+}

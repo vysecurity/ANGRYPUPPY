@@ -16,7 +16,7 @@ import org.json.* from: /Users/chedler/tools/ANGRYPUPPY/json.jar;
 
 # Ordered array with attack path in format
 # @(@(%node, relationship), @(%node, relationship), @(%lastnode))
-global('@relationships');
+global('@relationships @edges');
 
 sub parseNodes {
     local('$json');
@@ -59,7 +59,6 @@ sub parseNodes {
             println("User: " . @node[0]["label"]);
         }
     }
-
 }
 
 sub parseEdges {
@@ -72,6 +71,36 @@ sub parseEdges {
 
     $length = [$edgeArray length];
     println("Number of edges: $length");
+
+    for ($i = 0; $i < $length; $i++) {
+        %edge = %();
+
+        $id = [[$edgeArray get: $i] get: "id"];
+        $label = [[$edgeArray get: $i] get: "label"];
+        $source = [[$edgeArray get: $i] get: "source"];
+        $target = [[$edgeArray get: $i] get: "target"];
+
+
+        %edge["id"] = $id;
+        %edge["label"] = $label;
+        %edge["source"] = $source;
+        %edge["target"] = $target;
+
+        @edges[$i] = %edge;
+        println("Added edge: " . %edge);
+    }
+}
+
+sub getFirstNode {
+    @targets = @();
+    foreach %edge (@edges) {
+        add(@targets, %edge["target"]);
+    }
+    foreach %edge (@edges) {
+        if (%edge["source"] !isin @targets) {
+            return %edge;
+        }
+    }
 }
 
 sub parseGraph {
@@ -87,6 +116,8 @@ sub parseGraph {
 
     parseNodes($json);
     parseEdges($json);
+
+    println("First node is: " . getFirstNode());
 }
 
-parseGraph("/Users/chedler/tools/ANGRYPUPPY/graph2.json");
+parseGraph("/Users/chedler/tools/ANGRYPUPPY/graph3.json");
