@@ -10,34 +10,25 @@
 
 # org.json from https://mvnrepository.com/artifact/org.json/json
 # Documentation - https://stleary.github.io/JSON-java/
-
-import org.json.* from: /Users/vysec/Desktop/Tools/ANGRYPUPPY/json.jar;
+import org.json.* from: /Users/chedler/tools/ANGRYPUPPY/json.jar;
 
 # Parse BloodHound graph.json and add nodes
 
 global('%computers %users %groups');
 
 sub parseNodes {
-    local('$graph $json');
-    $graph = $1;
+    local('$json');
 
-    $file = openf($graph);
-
-    while $line (readln($file)) {
-        $json = $json . $line;
-    }
-
-    closef($file);
+    $json = $1;
 
     # Create new JSONObject from string
     $obj = [new JSONObject: $json];
 
     # Create a new JSONArray from the "nodes" key
-    $nodesArray = [new JSONArray: [$obj get: "nodes"]];
+    $nodeArray = [new JSONArray: [$obj get: "nodes"]];
 
     # How many nodes?
-    $length = [$nodesArray length];
-
+    $length = [$nodeArray length];
     println("Number of nodes: $length");
 
     # Iterate through all nodes and add to appropriate array
@@ -45,23 +36,25 @@ sub parseNodes {
         # Hash to store individual node information
         %node = %();
 
-        $type = [[$nodesArray get: $i] get: "type"];
-        $label = [[$nodesArray get: $i] get: "label"];
+        $id = [[$nodeArray get: $i] get: "id"];
+        $type = [[$nodeArray get: $i] get: "type"];
+        $label = [[$nodeArray get: $i] get: "label"];
 
+        %node["id"] = $id;
         %node["label"] = $label;
         %node["type"] = $type;
 
         if (%node["type"] eq "User") {
-            println("Adding user: $label");
-            %users[$label] = %node;
+            println("Node $id - adding user: $label");
+            %users[$id] = %node;
         }
         else if (%node["type"] eq "Computer") {
-            println("Adding computer: $label");
-            %computers[$label] = %node;
+            println("Node $id - adding computer: $label");
+            %computers[$id] = %node;
         }
         else if (%node["type"] eq "Group") {
-            println("Adding group: $label");
-            %groups[$label] = %node;
+            println("Node $id - adding group: $label");
+            %groups[$id] = %node;
         }
     }
 
@@ -71,4 +64,31 @@ sub parseNodes {
 
 }
 
-parseNodes(getFileProper(script_resource("graphs"), "graph.json"));
+sub parseEdges {
+    local('$json');
+    $json = $1;
+
+    $obj = [new JSONObject: $json];
+
+    $edgeArray = [new JSONArray: [$obj get: "edges"]];
+
+    $length = [$edgeArray length];
+    println("Number of edges: $length");
+}
+
+sub parseGraph {
+    local('$graph $json $file');
+    $graph = $1;
+    $file = openf($graph);
+
+    while $line (readln($file)) {
+        $json = $json . $line;
+    }
+
+    closef($file);
+
+    parseNodes($json);
+    parseEdges($json);
+}
+
+parseGraph("/Users/chedler/tools/ANGRYPUPPY/graph2.json");
