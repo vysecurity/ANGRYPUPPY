@@ -1,7 +1,7 @@
 # ANGRYPUPPY.cna
 # Automate BloodHound attack path in Cobalt Strike
 #
-# Authors: Calvin Hedler (@001SPARTaN) and Vincent Yiu (@vysecurity)
+# Authors: Calvin Hedler (@001SPARTaN) and Vincent Yiu (@vysecurity) :)
 #
 # TODO: How the hell do we specify relative paths for import and openf?
 # TODO: Parse graph edges
