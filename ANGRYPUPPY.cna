@@ -1,0 +1,74 @@
+# ANGRYPUPPY.cna
+# Automate BloodHound attack path in Cobalt Strike
+#
+# Authors: Calvin Hedler (@001SPARTaN) and Vincent Yiu (@vysecurity)
+#
+# TODO: How the hell do we specify relative paths for import and openf?
+# TODO: Parse graph edges
+# TODO: Figure out best way to store nodes - I have in hashes right now but ?
+# TODO: How to capture relationships - http://sleep.dashnine.org/manual/datastruct.html#3 ?
+
+# org.json from https://mvnrepository.com/artifact/org.json/json
+# Documentation - https://stleary.github.io/JSON-java/
+
+import org.json.* from: /Users/vysec/Desktop/Tools/ANGRYPUPPY/json.jar;
+
+# Parse BloodHound graph.json and add nodes
+
+global('%computers %users %groups');
+
+sub parseNodes {
+    local('$graph $json');
+    $graph = $1;
+
+    $file = openf($graph);
+
+    while $line (readln($file)) {
+        $json = $json . $line;
+    }
+
+    closef($file);
+
+    # Create new JSONObject from string
+    $obj = [new JSONObject: $json];
+
+    # Create a new JSONArray from the "nodes" key
+    $nodesArray = [new JSONArray: [$obj get: "nodes"]];
+
+    # How many nodes?
+    $length = [$nodesArray length];
+
+    println("Number of nodes: $length");
+
+    # Iterate through all nodes and add to appropriate array
+    for ($i = 0; $i < $length; $i++) {
+        # Hash to store individual node information
+        %node = %();
+
+        $type = [[$nodesArray get: $i] get: "type"];
+        $label = [[$nodesArray get: $i] get: "label"];
+
+        %node["label"] = $label;
+        %node["type"] = $type;
+
+        if (%node["type"] eq "User") {
+            println("Adding user: $label");
+            %users[$label] = %node;
+        }
+        else if (%node["type"] eq "Computer") {
+            println("Adding computer: $label");
+            %computers[$label] = %node;
+        }
+        else if (%node["type"] eq "Group") {
+            println("Adding group: $label");
+            %groups[$label] = %node;
+        }
+    }
+
+    println("Computers: " . %computers);
+    println("Users: " . %users);
+    println("Groups: " . %groups);
+
+}
+
+parseNodes(getFileProper(script_resource("graphs"), "graph.json"));
