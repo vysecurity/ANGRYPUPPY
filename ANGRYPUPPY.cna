@@ -14,7 +14,9 @@ import org.json.* from: /Users/chedler/tools/ANGRYPUPPY/json.jar;
 
 # Parse BloodHound graph.json and add nodes
 
-global('%computers %users %groups');
+# Ordered array with attack path in format
+# @(@(%node, relationship), @(%node, relationship), @(%lastnode))
+global('@relationships');
 
 sub parseNodes {
     local('$json');
@@ -44,23 +46,19 @@ sub parseNodes {
         %node["label"] = $label;
         %node["type"] = $type;
 
-        if (%node["type"] eq "User") {
-            println("Node $id - adding user: $label");
-            %users[$id] = %node;
-        }
-        else if (%node["type"] eq "Computer") {
-            println("Node $id - adding computer: $label");
-            %computers[$id] = %node;
-        }
-        else if (%node["type"] eq "Group") {
-            println("Node $id - adding group: $label");
-            %groups[$id] = %node;
-        }
+        @node = @(%node, "AdminTo");
+
+        add(@relationships, @node, -1);
     }
 
-    println("Computers: " . %computers);
-    println("Users: " . %users);
-    println("Groups: " . %groups);
+    foreach @node (@relationships) {
+        if (@node[0]["type"] eq "Computer") {
+            println("Computer: " . @node[0]["label"]);
+        }
+        else if (@node[0]["type"] eq "User") {
+            println("User: " . @node[0]["label"]);
+        }
+    }
 
 }
 
