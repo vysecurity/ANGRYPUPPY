@@ -3,9 +3,6 @@
 #
 # Authors: Calvin Hedler (@001SPARTaN) and Vincent Yiu (@vysecurity)
 #
-# TODO: How the hell do we specify relative paths for import and openf?
-# TODO: Parse graph edges
-# TODO: Figure out best way to store nodes - I have in hashes right now but ?
 # TODO: How to capture relationships - http://sleep.dashnine.org/manual/datastruct.html#3 ?
 
 # org.json from https://mvnrepository.com/artifact/org.json/json
@@ -16,7 +13,7 @@ import org.json.* from: /Users/chedler/tools/ANGRYPUPPY/json.jar;
 
 # Ordered array with attack path in format
 # @(@(%node, relationship), @(%node, relationship), @(%lastnode))
-global('@relationships @edges');
+global('@relationships @edges @nodes');
 
 sub parseNodes {
     local('$json');
@@ -46,17 +43,15 @@ sub parseNodes {
         %node["label"] = $label;
         %node["type"] = $type;
 
-        @node = @(%node, "AdminTo");
-
-        add(@relationships, @node, -1);
+        add(@nodes, %node, -1);
     }
 
-    foreach @node (@relationships) {
-        if (@node[0]["type"] eq "Computer") {
-            println("Computer: " . @node[0]["label"]);
+    foreach %node (@nodes) {
+        if (%node["type"] eq "Computer") {
+            println("Computer: " . %node["label"]);
         }
-        else if (@node[0]["type"] eq "User") {
-            println("User: " . @node[0]["label"]);
+        else if (%node["type"] eq "User") {
+            println("User: " . %node["label"]);
         }
     }
 }
@@ -92,13 +87,40 @@ sub parseEdges {
 }
 
 sub getFirstNode {
-    @targets = @();
+    local('@targets');
+
     foreach %edge (@edges) {
         add(@targets, %edge["target"]);
     }
     foreach %edge (@edges) {
         if (%edge["source"] !isin @targets) {
-            return %edge;
+            foreach %node (@nodes) {
+                if (%edge["source"] eq %node["id"]) {
+                    return %node;
+                }
+            }
+        }
+    }
+}
+
+sub getNextNode {
+    local('%node');
+    %node = $1;
+
+    foreach %edge (@edges) {
+    }
+}
+
+sub sortNodes {
+    local ('@sorted %firstNode');
+
+    %firstNode = getFirstNode();
+
+    add(@sorted, %firstNode, 0);
+
+    foreach %node (@nodes) {
+        foreach %edge (@edges) {
+            if 
         }
     }
 }
@@ -120,4 +142,4 @@ sub parseGraph {
     println("First node is: " . getFirstNode());
 }
 
-parseGraph("/Users/chedler/tools/ANGRYPUPPY/graph3.json");
+parseGraph("/Users/chedler/tools/ANGRYPUPPY/graph4.json");
