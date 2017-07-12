@@ -40,6 +40,10 @@ sub generateCypher {
 	}
 
 	# QUERY for all nodes we have currently
+	elog("");
+	elog("\cD==============================================");
+	elog("\cD====================CYPHER====================");
+	elog("\cD==============================================");
 
 	$query = "MATCH (n) WHERE (";
 	foreach $a (@items){
@@ -49,6 +53,7 @@ sub generateCypher {
 
 	elog("\cB[*] Show all beacon nodes");
 	elog("\c9" . $query);
+	elog("");
 
 	# QUERY for ALL paths from Current sessions
 
@@ -70,8 +75,9 @@ sub generateCypher {
 
 	$query = $query . "] as samAccountNames UNWIND samAccountNames as userNames MATCH (n) WHERE n.name STARTS WITH userNames WITH n MATCH (g1:Group) WHERE g1.name STARTS WITH \"DOMAIN ADMINS@\" MATCH p = allShortestPaths((n)-[r:MemberOf|AdminTo|HasSession*1..]->(g1)) RETURN p";
 
-	elog("\cB[*] Query all beacon nodes to Domain Admins");
+	elog("\cB[*] (B->DA - No ACL) Query all beacon nodes to Domain Admins");
 	elog("\c9" . $query);
+	elog("");
 
 	# QUERY FOR SHORTEST PATH for ANGRYPUPPY
 
@@ -95,8 +101,42 @@ sub generateCypher {
 
 	$query = $query . "] as samAccountNames UNWIND samAccountNames as userNames MATCH (n) WHERE n.name STARTS WITH userNames WITH n MATCH (g1:Group) WHERE g1.name STARTS WITH \"DOMAIN ADMINS@\" MATCH p = allShortestPaths((n)-[r:MemberOf|AdminTo|HasSession*1..]->(g1)) RETURN p ORDER BY LENGTH(p) ASC LIMIT 1";
 
-	elog("\cB[*] Query all beacon nodes to generate ANGRYPUPPY path");
+	elog("\cB[*] (B->DA - No ACL) Query all beacon nodes to generate ANGRYPUPPY path");
 	elog("\c9" . $query);
+	elog("");
+
+	############################
+	############################
+	######### A C L ############
+	############################
+	############################
+
+	$query = "WITH [";
+	foreach $a (@items){
+		$query = $query . "'" . $a . "',"; 
+	}
+	$query = substr($query, 0, -1);
+
+	$query = $query . "] as samAccountNames UNWIND samAccountNames as userNames MATCH (n) WHERE n.name STARTS WITH userNames WITH n MATCH (g1:Group) WHERE g1.name STARTS WITH \"DOMAIN ADMINS@\" MATCH p = allShortestPaths((n)-[r*1..]->(g1)) RETURN p";
+
+	elog("\cB[*] (B->DA - ACL) Query all beacon nodes to Domain Admins");
+	elog("\c9" . $query);
+	elog("");
+
+	# QUERY FOR SHORTEST PATH for ANGRYPUPPY ACL
+
+	$query = "WITH [";
+	foreach $a (@items){
+		$query = $query . "'" . $a . "',"; 
+	}
+	$query = substr($query, 0, -1);
+
+	$query = $query . "] as samAccountNames UNWIND samAccountNames as userNames MATCH (n) WHERE n.name STARTS WITH userNames WITH n MATCH (g1:Group) WHERE g1.name STARTS WITH \"DOMAIN ADMINS@\" MATCH p = allShortestPaths((n)-[r*1..]->(g1)) RETURN p ORDER BY LENGTH(p) ASC LIMIT 1";
+
+	elog("\cB[*] (B->DA - ACL) Query all beacon nodes to generate ANGRYPUPPY path");
+	elog("\c9" . $query);
+
+
 	return $query;
 }
 
