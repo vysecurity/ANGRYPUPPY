@@ -1,21 +1,19 @@
 # ANGRYPUPPY.cna
 # Automate BloodHound attack path in Cobalt Strike
 #
-# Authors: Calvin Hedler (@001SPARTaN) and Vincent Yiu (@vysecurity)
+# Authors: Calvin Hedler (@001SPARTaN) and Vincent Yiu (@vysecurity) :)
 #
-# TODO: How the hell do we specify relative paths for import and openf?
-# TODO: Parse graph edges
-# TODO: Figure out best way to store nodes - I have in hashes right now but ?
 # TODO: How to capture relationships - http://sleep.dashnine.org/manual/datastruct.html#3 ?
 
 # org.json from https://mvnrepository.com/artifact/org.json/json
 # Documentation - https://stleary.github.io/JSON-java/
-
-import org.json.* from: /Users/vysec/Desktop/Tools/ANGRYPUPPY/json.jar;
+import org.json.* from: /Users/chedler/tools/ANGRYPUPPY/json.jar;
 
 # Parse BloodHound graph.json and add nodes
 
-global('%computers %users %groups');
+# Ordered array with attack path in format
+# @(@(%node, relationship), @(%node, relationship), @(%lastnode))
+global('@relationships @edges @nodes');
 
 alias cypher{
 	generateCypher();
@@ -26,9 +24,117 @@ beacon_command_register("cypher", "Obtains a set of cypher queries for visualisa
 	"Obtains a set of cypher queries for visualisations from current active beacons\nOutputs to event log");
 
 sub parseNodes {
-    local('$graph $json');
-    $graph = $1;
+    local('$json');
 
+    $json = $1;
+
+    # Create new JSONObject from string
+    $obj = [new JSONObject: $json];
+
+    # Create a new JSONArray from the "nodes" key
+    $nodeArray = [new JSONArray: [$obj get: "nodes"]];
+
+    # How many nodes?
+    $length = [$nodeArray length];
+    println("Number of nodes: $length");
+
+    # Iterate through all nodes and add to appropriate array
+    for ($i = 0; $i < $length; $i++) {
+        # Hash to store individual node information
+        %node = %();
+
+        $id = [[$nodeArray get: $i] get: "id"];
+        $type = [[$nodeArray get: $i] get: "type"];
+        $label = [[$nodeArray get: $i] get: "label"];
+
+        %node["id"] = $id;
+        %node["label"] = $label;
+        %node["type"] = $type;
+
+        add(@nodes, %node, -1);
+    }
+
+    foreach %node (@nodes) {
+        if (%node["type"] eq "Computer") {
+            println("Computer: " . %node["label"]);
+        }
+        else if (%node["type"] eq "User") {
+            println("User: " . %node["label"]);
+        }
+    }
+}
+
+sub parseEdges {
+    local('$json');
+    $json = $1;
+
+    $obj = [new JSONObject: $json];
+
+    $edgeArray = [new JSONArray: [$obj get: "edges"]];
+
+    $length = [$edgeArray length];
+    println("Number of edges: $length");
+
+    for ($i = 0; $i < $length; $i++) {
+        %edge = %();
+
+        $id = [[$edgeArray get: $i] get: "id"];
+        $label = [[$edgeArray get: $i] get: "label"];
+        $source = [[$edgeArray get: $i] get: "source"];
+        $target = [[$edgeArray get: $i] get: "target"];
+
+
+        %edge["id"] = $id;
+        %edge["label"] = $label;
+        %edge["source"] = $source;
+        %edge["target"] = $target;
+
+        @edges[$i] = %edge;
+        println("Added edge: " . %edge);
+    }
+}
+
+sub getFirstNode {
+    local('@targets');
+
+    foreach %edge (@edges) {
+        add(@targets, %edge["target"]);
+    }
+    foreach %edge (@edges) {
+        if (%edge["source"] !isin @targets) {
+            foreach %node (@nodes) {
+                if (%edge["source"] eq %node["id"]) {
+                    return %node;
+                }
+            }
+        }
+    }
+}
+
+sub getNextNode {
+    local('%node');
+    %node = $1;
+
+    foreach %edge (@edges) {
+    }
+}
+
+sub sortNodes {
+    local ('@sorted %firstNode');
+
+    %firstNode = getFirstNode();
+
+    add(@sorted, %firstNode, 0);
+
+    foreach %node (@nodes) {
+        foreach %edge (@edges) {
+        }
+    }
+}
+
+sub parseGraph {
+    local('$graph $json $file');
+    $graph = $1;
     $file = openf($graph);
 
     while $line (readln($file)) {
@@ -37,46 +143,10 @@ sub parseNodes {
 
     closef($file);
 
-    # Create new JSONObject from string
-    $obj = [new JSONObject: $json];
+    parseNodes($json);
+    parseEdges($json);
 
-    # Create a new JSONArray from the "nodes" key
-    $nodesArray = [new JSONArray: [$obj get: "nodes"]];
-
-    # How many nodes?
-    $length = [$nodesArray length];
-
-    println("Number of nodes: $length");
-
-    # Iterate through all nodes and add to appropriate array
-    for ($i = 0; $i < $length; $i++) {
-        # Hash to store individual node information
-        %node = %();
-
-        $type = [[$nodesArray get: $i] get: "type"];
-        $label = [[$nodesArray get: $i] get: "label"];
-
-        %node["label"] = $label;
-        %node["type"] = $type;
-
-        if (%node["type"] eq "User") {
-            println("Adding user: $label");
-            %users[$label] = %node;
-        }
-        else if (%node["type"] eq "Computer") {
-            println("Adding computer: $label");
-            %computers[$label] = %node;
-        }
-        else if (%node["type"] eq "Group") {
-            println("Adding group: $label");
-            %groups[$label] = %node;
-        }
-    }
-
-    println("Computers: " . %computers);
-    println("Users: " . %users);
-    println("Groups: " . %groups);
-
+    println("First node is: " . getFirstNode());
 }
 
 sub generateCypher {
@@ -175,4 +245,4 @@ sub init {
 
 init()
 
-#parseNodes(getFileProper(script_resource("graphs"), "graph.json"));
+parseGraph("/Users/chedler/tools/ANGRYPUPPY/graph4.json");
