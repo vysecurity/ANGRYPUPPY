@@ -120,7 +120,6 @@ sub sortNodes {
 
     foreach %node (@nodes) {
         foreach %edge (@edges) {
-            if 
         }
     }
 }
