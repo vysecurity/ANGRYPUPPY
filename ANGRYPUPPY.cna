@@ -1,27 +1,20 @@
 # ANGRYPUPPY.cna
 # Automate BloodHound attack path in Cobalt Strike
 #
-# Authors: Calvin Hedler (@001SPARTaN) and Vincent Yiu (@vysecurity) :)
+# Authors: Calvin Hedler (@001SPARTaN) and Vincent Yiu (@vysecurity)
 #
 # TODO: How to capture relationships - http://sleep.dashnine.org/manual/datastruct.html#3 ?
 
 # org.json from https://mvnrepository.com/artifact/org.json/json
 # Documentation - https://stleary.github.io/JSON-java/
 import org.json.* from: /Users/chedler/tools/ANGRYPUPPY/json.jar;
+include(script_resource("cypher.cna"));
 
 # Parse BloodHound graph.json and add nodes
 
 # Ordered array with attack path in format
 # @(@(%node, relationship), @(%node, relationship), @(%lastnode))
 global('@relationships @edges @nodes');
-
-alias cypher{
-	generateCypher();
-}
-
-beacon_command_register("cypher", "Obtains a set of cypher queries for visualisations from current active beacons",
-	"Synopsis: cypher\n\n" .
-	"Obtains a set of cypher queries for visualisations from current active beacons\nOutputs to event log");
 
 sub parseNodes {
     local('$json');
@@ -149,100 +142,4 @@ sub parseGraph {
     println("First node is: " . getFirstNode());
 }
 
-sub generateCypher {
-	# check in every beacon
-	@items = @();
-	foreach $session (beacons()){
-
-		$user = $session["user"];
-		$computer = $session["computer"];
-
-		if ("*" isin $user){
-			$user = substr($user, 0, -2);
-		}
-		
-
-		if ((uc($user) !isin @items)){
-			if ($session["user"] ne "SYSTEM"){
-				# if user is not in items
-
-				push(@items, uc($user));
-			}
-		}
-		if ((uc($computer) !isin @items)){
-			# if computer is not items
-			if ("*" isin $session["user"]){
-				push(@items, uc($computer));
-			}
-		}
-	}
-
-	
-	# QUERY for all nodes we have currently
-
-	$query = "MATCH (n) WHERE (";
-	foreach $a (@items){
-			$query = $query . "n.name =~ \"" . $a . "@.*\") OR ("; 	
-	}
-	$query = $query . ") RETURN n";
-
-	elog("\cB[*] Show all beacon nodes");
-	elog("\c9" . $query);
-
-	# QUERY for ALL paths from Current sessions
-
-	# WITH ['GBARNES','RL-DESKTOP18'] as samAccountNames
-	# UNWIND samAccountNames as userNames
-	# MATCH (n:User)
-	# WHERE n.name STARTS WITH userNames
-	# WITH n
-	# MATCH (g1:Group)
-	# WHERE g1.name STARTS WITH "DOMAIN ADMINS@"
-	# MATCH p = allShortestPaths((n)-[r:MemberOf|AdminTo|HasSession*1..]->(g1))
-	# RETURN p
-
-	$query = "WITH [";
-	foreach $a (@items){
-		$query = $query . "'" . $a . "',"; 
-	}
-	$query = substr($query, 0, -1);
-
-	$query = $query . "] as samAccountNames UNWIND samAccountNames as userNames MATCH (n) WHERE n.name STARTS WITH userNames WITH n MATCH (g1:Group) WHERE g1.name STARTS WITH \"DOMAIN ADMINS@\" MATCH p = allShortestPaths((n)-[r:MemberOf|AdminTo|HasSession*1..]->(g1)) RETURN p";
-
-	elog("\cB[*] Query all beacon nodes to Domain Admins");
-	elog("\c9" . $query);
-
-	# QUERY FOR SHORTEST PATH for ANGRYPUPPY
-
-	# WITH ['GBARNES','RL-DESKTOP18'] as samAccountNames
-	# UNWIND samAccountNames as userNames
-	# MATCH (n:User)
-	# WHERE n.name STARTS WITH userNames
-	# WITH n
-	# MATCH (g1:Group)
-	# WHERE g1.name STARTS WITH "DOMAIN ADMINS@"
-	# MATCH p = allShortestPaths((n)-[r:MemberOf|AdminTo|HasSession*1..]->(g1))
-	# RETURN p
-	# ORDER BY LENGTH(p) ASC
-	# LIMIT 1
-
-	$query = "WITH [";
-	foreach $a (@items){
-		$query = $query . "'" . $a . "',"; 
-	}
-	$query = substr($query, 0, -1);
-
-	$query = $query . "] as samAccountNames UNWIND samAccountNames as userNames MATCH (n) WHERE n.name STARTS WITH userNames WITH n MATCH (g1:Group) WHERE g1.name STARTS WITH \"DOMAIN ADMINS@\" MATCH p = allShortestPaths((n)-[r:MemberOf|AdminTo|HasSession*1..]->(g1)) RETURN p ORDER BY LENGTH(p) ASC LIMIT 1";
-
-	elog("\cB[*] Query all beacon nodes to generate ANGRYPUPPY path");
-	elog("\c9" . $query);
-	return $query;
-}
-
-sub init {
-	# Initialise
-}
-
-init()
-
-parseGraph("/Users/chedler/tools/ANGRYPUPPY/graph4.json");
+parseGraph("/Users/chedler/tools/ANGRYPUPPY/graphs/graph4.json");
