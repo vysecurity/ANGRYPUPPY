@@ -154,4 +154,4 @@ sub parseGraph {
     sortNodes();
 }
 
-parseGraph("/Users/chedler/tools/ANGRYPUPPY/graphs/graph4.json");
+parseGraph(getFileProper(script_resource("graphs"), "graph4.json"));
