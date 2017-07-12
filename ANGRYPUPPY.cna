@@ -75,19 +75,24 @@ sub generateCypher {
 	# check in every beacon
 	@items = @();
 	foreach $session (beacons()){
-		if ("*" isin $session["user"]){
-			$user = substr($session["user"], 0, -2);
-		}
 
-		if (($user !isin @items)){
+		$user = $session["user"];
+		$computer = $session["computer"];
+
+		if ("*" isin $user){
+			$user = substr($user, 0, -2);
+		}
+		
+
+		if ((uc($user) !isin @items)){
 			if ($session["user"] ne "SYSTEM"){
 				# if user is not in items
+
 				push(@items, uc($user));
 			}
 		}
-		if (($session["computer"] !isin @items)){
+		if ((uc($computer) !isin @items)){
 			# if computer is not items
-			$computer = $session["computer"];
 			if ("*" isin $session["user"]){
 				push(@items, uc($computer));
 			}
