@@ -5,6 +5,7 @@
 
 alias cypher{
     generateCypher();
+    blog($1, "[*] Sent Cypher queries to Event Log");
 }
 
 beacon_command_register("cypher", "Obtains a set of cypher queries for visualisations from current active beacons",
@@ -24,7 +25,7 @@ sub generateCypher {
 		}
 
 		if ((uc($user) !isin @items)){
-			if ($session["user"] ne "SYSTEM"){
+			if ($user ne "SYSTEM"){
 				# if user is not in items
 
 				push(@items, uc($user));
