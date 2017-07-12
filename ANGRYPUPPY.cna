@@ -163,7 +163,7 @@ sub generateCypher {
 		
 
 		if ((uc($user) !isin @items)){
-			if ($session["user"] ne "SYSTEM"){
+			if ($user ne "SYSTEM"){
 				# if user is not in items
 
 				push(@items, uc($user));
