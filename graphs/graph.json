@@ -1,0 +1,210 @@
+{
+  "nodes": [
+    {
+      "id": 265787,
+      "type": "Group",
+      "label": "DOMAIN ADMINS@RASTALABS.LOCAL",
+      "glyphs": {},
+      "folded": {
+        "nodes": {},
+        "edges": {}
+      },
+      "x": 696.7945254587595,
+      "y": 66.46686820618947,
+      "type_group": true,
+      "size": 1,
+      "degree": 1,
+      "icon": {
+        "font": "FontAwesome",
+        "content": "",
+        "scale": 1.5,
+        "color": "#DBE617"
+      },
+      "fa2_x": -2.211517810821533,
+      "fa2_y": -3.8946964740753174,
+      "dn_x": null,
+      "dn_y": null,
+      "dn_size": 11.573827732089892,
+      "dn": null
+    },
+    {
+      "id": 265806,
+      "type": "User",
+      "label": "GBARNES@RASTALABS.LOCAL",
+      "glyphs": {},
+      "folded": {
+        "nodes": {},
+        "edges": {}
+      },
+      "x": 1863.2054745412406,
+      "y": 1320.5331317938105,
+      "type_user": true,
+      "size": 1,
+      "degree": 1,
+      "icon": {
+        "font": "FontAwesome",
+        "content": "",
+        "scale": 1.5,
+        "color": "#17E625"
+      },
+      "fa2_x": 3.859013319015503,
+      "fa2_y": 2.632032632827759,
+      "dn_x": null,
+      "dn_y": null,
+      "dn_size": 11.573827732089892,
+      "dn": null
+    },
+    {
+      "id": 265807,
+      "type": "Group",
+      "label": "DESKTOP SUPPORT@RASTALABS.LOCAL",
+      "glyphs": {},
+      "folded": {
+        "nodes": {},
+        "edges": {}
+      },
+      "x": 1489.785913198402,
+      "y": 991.9902651532518,
+      "type_group": true,
+      "size": 5,
+      "degree": 2,
+      "icon": {
+        "font": "FontAwesome",
+        "content": "",
+        "scale": 1.5,
+        "color": "#DBE617"
+      },
+      "fa2_x": 1.9155687093734741,
+      "fa2_y": 0.9221466779708862,
+      "dn_x": null,
+      "dn_y": null,
+      "dn_size": 19.289712886816485,
+      "dn": null
+    },
+    {
+      "id": 265817,
+      "type": "User",
+      "label": "MSSQLSERVER@RASTALABS.LOCAL",
+      "glyphs": {},
+      "folded": {
+        "nodes": {},
+        "edges": {}
+      },
+      "x": 729.6616780005747,
+      "y": 543.6475920377668,
+      "type_user": true,
+      "size": 5,
+      "degree": 2,
+      "icon": {
+        "font": "FontAwesome",
+        "content": "",
+        "scale": 1.5,
+        "color": "#17E625"
+      },
+      "fa2_x": -2.0404622554779053,
+      "fa2_y": -1.4112317562103271,
+      "dn_x": null,
+      "dn_y": null,
+      "dn_size": 19.289712886816485,
+      "dn": null
+    },
+    {
+      "id": 265854,
+      "type": "Computer",
+      "label": "RLAB-DESKTOP18.RASTALABS.LOCAL",
+      "glyphs": {},
+      "folded": {
+        "nodes": {},
+        "edges": {}
+      },
+      "x": 1023.2899492504365,
+      "y": 954.6533825313834,
+      "type_computer": true,
+      "size": 5,
+      "degree": 2,
+      "icon": {
+        "font": "FontAwesome",
+        "content": "",
+        "scale": 1.2,
+        "color": "#E67873"
+      },
+      "fa2_x": -0.5122876763343811,
+      "fa2_y": 0.7278286218643188,
+      "dn_x": null,
+      "dn_y": null,
+      "dn_size": 19.289712886816485,
+      "dn": null
+    }
+  ],
+  "edges": [
+    {
+      "id": 4668767,
+      "type": "tapered",
+      "source": 265806,
+      "target": 265807,
+      "label": "MemberOf",
+      "size": 1
+    },
+    {
+      "id": 4668781,
+      "type": "tapered",
+      "source": 265817,
+      "target": 265787,
+      "label": "MemberOf",
+      "size": 1
+    },
+    {
+      "id": 4668868,
+      "type": "tapered",
+      "source": 265807,
+      "target": 265854,
+      "label": "AdminTo",
+      "size": 1
+    },
+    {
+      "id": 4669497,
+      "type": "tapered",
+      "source": 265854,
+      "target": 265817,
+      "label": "HasSession",
+      "size": 1
+    }
+  ],
+  "spotlight": {
+    "265787": [
+      "DOMAIN ADMINS@RASTALABS.LOCAL",
+      0,
+      "",
+      "Group",
+      ""
+    ],
+    "265806": [
+      "GBARNES@RASTALABS.LOCAL",
+      0,
+      "",
+      "User",
+      ""
+    ],
+    "265807": [
+      "DESKTOP SUPPORT@RASTALABS.LOCAL",
+      0,
+      "",
+      "Group",
+      ""
+    ],
+    "265817": [
+      "MSSQLSERVER@RASTALABS.LOCAL",
+      0,
+      "",
+      "User",
+      ""
+    ],
+    "265854": [
+      "RLAB-DESKTOP18.RASTALABS.LOCAL",
+      0,
+      "",
+      "Computer",
+      ""
+    ]
+  }
+}
