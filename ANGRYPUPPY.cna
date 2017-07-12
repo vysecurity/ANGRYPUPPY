@@ -17,6 +17,14 @@ import org.json.* from: /Users/vysec/Desktop/Tools/ANGRYPUPPY/json.jar;
 
 global('%computers %users %groups');
 
+alias cypher{
+	generateCypher();
+}
+
+beacon_command_register("cypher", "Obtains a set of cypher queries for visualisations from current active beacons",
+	"Synopsis: cypher\n\n" .
+	"Obtains a set of cypher queries for visualisations from current active beacons\nOutputs to event log");
+
 sub parseNodes {
     local('$graph $json');
     $graph = $1;
@@ -104,7 +112,7 @@ sub generateCypher {
 
 	$query = "MATCH (n) WHERE (";
 	foreach $a (@items){
-			$query = $query . "n.name =~ \"(?i)" . $a . "@.*\") OR ("; 	
+			$query = $query . "n.name =~ \"" . $a . "@.*\") OR ("; 	
 	}
 	$query = $query . ") RETURN n";
 
@@ -158,12 +166,11 @@ sub generateCypher {
 
 	elog("\cB[*] Query all beacon nodes to generate ANGRYPUPPY path");
 	elog("\c9" . $query);
-	
+	return $query;
 }
 
 sub init {
-	# Initialise	
-	generateCypher()
+	# Initialise
 }
 
 init()
