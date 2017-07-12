@@ -76,7 +76,6 @@ sub parseEdges {
         $source = [[$edgeArray get: $i] get: "source"];
         $target = [[$edgeArray get: $i] get: "target"];
 
-
         %edge["id"] = $id;
         %edge["label"] = $label;
         %edge["source"] = $source;
@@ -97,6 +96,7 @@ sub getFirstNode {
         if (%edge["source"] !isin @targets) {
             foreach %node (@nodes) {
                 if (%edge["source"] eq %node["id"]) {
+                    println("First node is: " . %node["id"]);
                     return %node;
                 }
             }
@@ -105,24 +105,36 @@ sub getFirstNode {
 }
 
 sub getNextNode {
-    local('%node');
-    %node = $1;
+    local('%sourceNode');
+    %sourceNode = $1;
 
     foreach %edge (@edges) {
+        if (%edge["source"] == %sourceNode["id"]) {
+                foreach %node (@nodes) {
+                    if (%node["id"] == %edge["target"]) {
+                        println("Found next node: " . %node["id"]);
+                        return %node;
+                    }
+                }
+            }
     }
 }
 
 sub sortNodes {
-    local ('@sorted %firstNode');
+    local ('@sorted %firstNode $length');
+
+    $length = size(@nodes);
 
     %firstNode = getFirstNode();
 
     add(@sorted, %firstNode, 0);
 
-    foreach %node (@nodes) {
-        foreach %edge (@edges) {
-        }
+    for ($i = 1; $i < $length; $i++){
+        %next = getNextNode(@sorted[-1]);
+        add(@sorted, %next, -1);
     }
+
+    println("Sorted nodes: " . @sorted);
 }
 
 sub parseGraph {
@@ -139,7 +151,7 @@ sub parseGraph {
     parseNodes($json);
     parseEdges($json);
 
-    println("First node is: " . getFirstNode());
+    sortNodes();
 }
 
-parseGraph("/Users/chedler/tools/ANGRYPUPPY/graph4.json");
+parseGraph("/Users/chedler/tools/ANGRYPUPPY/graphs/graph4.json");
