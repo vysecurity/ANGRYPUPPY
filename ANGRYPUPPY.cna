@@ -1,27 +1,20 @@
 # ANGRYPUPPY.cna
 # Automate BloodHound attack path in Cobalt Strike
 #
-# Authors: Calvin Hedler (@001SPARTaN) and Vincent Yiu (@vysecurity) :)
+# Authors: Calvin Hedler (@001SPARTaN) and Vincent Yiu (@vysecurity)
 #
 # TODO: How to capture relationships - http://sleep.dashnine.org/manual/datastruct.html#3 ?
 
 # org.json from https://mvnrepository.com/artifact/org.json/json
 # Documentation - https://stleary.github.io/JSON-java/
 import org.json.* from: /Users/chedler/tools/ANGRYPUPPY/json.jar;
+include(script_resource("cypher.cna"));
 
 # Parse BloodHound graph.json and add nodes
 
 # Ordered array with attack path in format
 # @(@(%node, relationship), @(%node, relationship), @(%lastnode))
 global('@relationships @edges @nodes');
-
-alias cypher{
-	generateCypher();
-}
-
-beacon_command_register("cypher", "Obtains a set of cypher queries for visualisations from current active beacons",
-	"Synopsis: cypher\n\n" .
-	"Obtains a set of cypher queries for visualisations from current active beacons\nOutputs to event log");
 
 sub parseNodes {
     local('$json');
