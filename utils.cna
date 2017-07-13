@@ -1,0 +1,48 @@
+# Utils.cna
+# Contains utility functions
+#
+# Authors: Calvin Hedler (@001SPARTaN) and Vincent Yiu (@vysecurity)
+
+alias bhUserToCS {
+    bhUserToCS-sub($2);
+}
+
+beacon_command_register("bhUserToCS", "Obtains a set of cypher queries for visualisations from current active beacons",
+                        "Synopsis: cypher\n\n" .
+                        "Obtains a set of cypher queries for visualisations from current active beacons\nOutputs to event log");
+
+sub bhUserToCS-sub {
+	$user = $1;
+
+	$user = split("@", $user)[0];
+
+	return $user;
+}
+
+on credentials {
+	
+	foreach $cred (credentials()){
+		if ($cred["user"] eq $nextLabel){
+			# Check if it's the target one we want
+
+			$waitFor = $cred["user"];
+		}
+
+	}
+}
+
+on beacon_initial {
+	# Check ID
+
+	# $1 is beacon ID that came in
+
+	$bid = $1;
+
+	$bUser = beacon_info($bid, "user");
+	$bComputer = beacon_info($bid, "computer");
+
+	if ($bComputer eq $nextLabel){
+
+		$waitFor = $bComputer;
+	}
+}
