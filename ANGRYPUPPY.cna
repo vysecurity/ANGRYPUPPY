@@ -7,14 +7,15 @@
 
 # org.json from https://mvnrepository.com/artifact/org.json/json
 # Documentation - https://stleary.github.io/JSON-java/
-import org.json.* from: /Users/chedler/tools/ANGRYPUPPY/json.jar;
+import org.json.* from: /Users/vysec/Desktop/Tools/ANGRYPUPPY/json.jar;
 include(script_resource("cypher.cna"));
+include(script_resource("utils.cna"));
 
 # Parse BloodHound graph.json and add nodes
 
 # Ordered array with attack path in format
 # @(@(%node, relationship), @(%node, relationship), @(%lastnode))
-global('@relationships @edges @nodes');
+global('@relationships @edges @nodes $waitFor $currentBid $nextLabel $attackActive $pos');
 
 sub parseNodes {
     local('$json');
@@ -29,7 +30,7 @@ sub parseNodes {
 
     # How many nodes?
     $length = [$nodeArray length];
-    println("Number of nodes: $length");
+    #println("Number of nodes: $length");
 
     # Iterate through all nodes and add to appropriate array
     for ($i = 0; $i < $length; $i++) {
@@ -49,10 +50,10 @@ sub parseNodes {
 
     foreach %node (@nodes) {
         if (%node["type"] eq "Computer") {
-            println("Computer: " . %node["label"]);
+            #println("Computer: " . %node["label"]);
         }
         else if (%node["type"] eq "User") {
-            println("User: " . %node["label"]);
+            #println("User: " . %node["label"]);
         }
     }
 }
@@ -66,7 +67,7 @@ sub parseEdges {
     $edgeArray = [new JSONArray: [$obj get: "edges"]];
 
     $length = [$edgeArray length];
-    println("Number of edges: $length");
+    #println("Number of edges: $length");
 
     for ($i = 0; $i < $length; $i++) {
         %edge = %();
@@ -76,14 +77,13 @@ sub parseEdges {
         $source = [[$edgeArray get: $i] get: "source"];
         $target = [[$edgeArray get: $i] get: "target"];
 
-
         %edge["id"] = $id;
         %edge["label"] = $label;
         %edge["source"] = $source;
         %edge["target"] = $target;
 
         @edges[$i] = %edge;
-        println("Added edge: " . %edge);
+        #println("Added edge: " . %edge);
     }
 }
 
@@ -97,6 +97,7 @@ sub getFirstNode {
         if (%edge["source"] !isin @targets) {
             foreach %node (@nodes) {
                 if (%edge["source"] eq %node["id"]) {
+                    #println("First node is: " . %node["id"]);
                     return %node;
                 }
             }
@@ -105,24 +106,54 @@ sub getFirstNode {
 }
 
 sub getNextNode {
-    local('%node');
-    %node = $1;
+    local('%sourceNode');
+    %sourceNode = $1;
 
     foreach %edge (@edges) {
+        if (%edge["source"] == %sourceNode["id"]) {
+                foreach %node (@nodes) {
+                    if (%node["id"] == %edge["target"]) {
+                        #println("Found next node: " . %node["id"]);
+                        return %node;
+                    }
+                }
+            }
     }
 }
 
 sub sortNodes {
-    local ('@sorted %firstNode');
+    local ('@sorted %firstNode $length');
+
+    $length = size(@nodes);
 
     %firstNode = getFirstNode();
 
     add(@sorted, %firstNode, 0);
 
-    foreach %node (@nodes) {
-        foreach %edge (@edges) {
-        }
+    for ($i = 1; $i < $length; $i++){
+        %next = getNextNode(@sorted[-1]);
+        add(@sorted, %next, -1);
     }
+
+    # println("Sorted nodes: " . @sorted);
+
+    return @sorted;
+}
+
+sub removeGroups {
+	
+	@nodes = $1;
+
+	foreach $i => $item (@nodes){
+    	if ($item["type"] ne "Group"){
+    		if ($item["type"] eq "User"){
+    			$item["label"] = bhUserToCS-sub($item["label"]);
+    		}
+    		push(@final, $item);
+    	}
+    }
+
+    return @final;
 }
 
 sub parseGraph {
@@ -139,103 +170,108 @@ sub parseGraph {
     parseNodes($json);
     parseEdges($json);
 
-    println("First node is: " . getFirstNode());
+    @nodelist = sortNodes();
+
+    @final = removeGroups(@nodelist);
+
+    # Set currentBid to first node
+
+    # If Start node is a computer
+    if (@final[0]["type"] eq "Computer"){
+    	$cLabel = @final[0]["label"];
+    	foreach $session (beacons()) {
+			if ($cLabel eq $session["computer"]) {
+				$currentBid = $session["id"];
+			}
+		}
+	}
+    else{
+    	# Start node is a user
+    	$uLabel = @final[0]["label"];
+    	foreach $session (beacons()) {
+			if ($cLabel eq $session["user"]) {
+				$currentBid = $session["id"];
+			}
+		}
+    }
+
+    # $currentBid is now the start node.
+
+   	# Reset waitFor
+    $waitFor = "";
+
+    $attackActive = $True;
+
+ 	$pos = 0;
+
+
 }
 
-sub generateCypher {
-	# check in every beacon
-	@items = @();
-	foreach $session (beacons()){
+on heartbeat_1s{
 
-		$user = $session["user"];
-		$computer = $session["computer"];
-
-		if ("*" isin $user){
-			$user = substr($user, 0, -2);
-		}
+	if ($attackActive){
+		# Ignore current node 0 as it's the first node and our machine. So loop all the way to the end.
+		$next = @final[$pos + 1];
+		$nextLabel = $next["label"];
+		if (@final[$pos + 1]["type"] eq "Computer"){
+			println("[LATERAL] : $nextLabel");
+			
+			println("Waiting");
+		    if ($waitFor eq $nextLabel) {
+		    	# We got the beacon back and change the bid to the new one
+		    	foreach $session (beacons()) {
+					if ($nextLabel eq $session["computer"]) {
+						$currentBid = $session["id"];
+						break;
+					}
+				}
+				if ($currentBid["computer"] eq $nextLabel){
+					# All good to go
+					$pos = $pos + 1;
+				}
+			}
+			else if ($waitFor ne "") {
+			  	# Error occured, let's reset waitFor
+			   	$waitFor = "";
+			   	println("Error: WaitFor override with wrong beacon");
+			}			
 		
+		}
+		else {
+			println("[MIMIKATZ]: $nextLabel");
+			
+			# At this point we already know we have a COMPUTER sesssion going, with SYSTEM, so we can just scrape the credentials.
+			# If all works fine, $currentBid contains the machine we are working on and should be scraping creds from
 
-		if ((uc($user) !isin @items)){
-			if ($user ne "SYSTEM"){
-				# if user is not in items
-
-				push(@items, uc($user));
+			if ($waitFor eq $nextLabel) {
+				# We got the set of credentials we need in the cred store, we want to grab it out now.
+				foreach $cred (credentials()){
+					if ($nextLabel eq $cred["user"]){
+						# Current $Cred object 
+						$targetCreds = $cred;
+						break;
+					}
+				}
+				if ($targetCreds["user"] eq $nextLabel){
+					# All good to go
+					$pos = $pos + 1;
+				}
+				else{
+					println("Credentials are not found in credential store for the target");
+				}
+			}
+			else if ($waitFor ne "") {
+				$waitFor = "";
+				println("Error: WaitFor override with wrong credentials");
 			}
 		}
-		if ((uc($computer) !isin @items)){
-			# if computer is not items
-			if ("*" isin $session["user"]){
-				push(@items, uc($computer));
-			}
+		if ($pos = size(@final)){
+			# Finished attack path
+
+			println("[*] Attack finished");
+			$attackActive = $False;
 		}
-	}
-
-	
-	# QUERY for all nodes we have currently
-
-	$query = "MATCH (n) WHERE (";
-	foreach $a (@items){
-			$query = $query . "n.name =~ \"" . $a . "@.*\") OR ("; 	
-	}
-	$query = $query . ") RETURN n";
-
-	elog("\cB[*] Show all beacon nodes");
-	elog("\c9" . $query);
-
-	# QUERY for ALL paths from Current sessions
-
-	# WITH ['GBARNES','RL-DESKTOP18'] as samAccountNames
-	# UNWIND samAccountNames as userNames
-	# MATCH (n:User)
-	# WHERE n.name STARTS WITH userNames
-	# WITH n
-	# MATCH (g1:Group)
-	# WHERE g1.name STARTS WITH "DOMAIN ADMINS@"
-	# MATCH p = allShortestPaths((n)-[r:MemberOf|AdminTo|HasSession*1..]->(g1))
-	# RETURN p
-
-	$query = "WITH [";
-	foreach $a (@items){
-		$query = $query . "'" . $a . "',"; 
-	}
-	$query = substr($query, 0, -1);
-
-	$query = $query . "] as samAccountNames UNWIND samAccountNames as userNames MATCH (n) WHERE n.name STARTS WITH userNames WITH n MATCH (g1:Group) WHERE g1.name STARTS WITH \"DOMAIN ADMINS@\" MATCH p = allShortestPaths((n)-[r:MemberOf|AdminTo|HasSession*1..]->(g1)) RETURN p";
-
-	elog("\cB[*] Query all beacon nodes to Domain Admins");
-	elog("\c9" . $query);
-
-	# QUERY FOR SHORTEST PATH for ANGRYPUPPY
-
-	# WITH ['GBARNES','RL-DESKTOP18'] as samAccountNames
-	# UNWIND samAccountNames as userNames
-	# MATCH (n:User)
-	# WHERE n.name STARTS WITH userNames
-	# WITH n
-	# MATCH (g1:Group)
-	# WHERE g1.name STARTS WITH "DOMAIN ADMINS@"
-	# MATCH p = allShortestPaths((n)-[r:MemberOf|AdminTo|HasSession*1..]->(g1))
-	# RETURN p
-	# ORDER BY LENGTH(p) ASC
-	# LIMIT 1
-
-	$query = "WITH [";
-	foreach $a (@items){
-		$query = $query . "'" . $a . "',"; 
-	}
-	$query = substr($query, 0, -1);
-
-	$query = $query . "] as samAccountNames UNWIND samAccountNames as userNames MATCH (n) WHERE n.name STARTS WITH userNames WITH n MATCH (g1:Group) WHERE g1.name STARTS WITH \"DOMAIN ADMINS@\" MATCH p = allShortestPaths((n)-[r:MemberOf|AdminTo|HasSession*1..]->(g1)) RETURN p ORDER BY LENGTH(p) ASC LIMIT 1";
-
-	elog("\cB[*] Query all beacon nodes to generate ANGRYPUPPY path");
-	elog("\c9" . $query);
-	return $query;
+	}	# End $attackActive
 }
 
-sub init {
-	# Initialise
-}
-
-init()
-
-parseGraph("/Users/chedler/tools/ANGRYPUPPY/graph4.json");
+parseGraph(getFileProper(script_resource("graphs"), "graph4.json"));
