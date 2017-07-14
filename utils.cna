@@ -30,9 +30,9 @@ sub bhComputerToCS-sub{
 on credentials {
 	
 	if ($attackActive eq $True){
-		bpause($1, 10000);
+		bpause($currentBid, 5000);
 		foreach $cred (credentials()){
-			if ($cred["user"] eq $nextLabel){
+			if (uc($cred["user"]) eq $nextLabel){
 				# Check if it's the target one we want
 				$waitFor = uc($nextLabel);
 			}
@@ -48,7 +48,7 @@ on beacon_initial {
 
 	if ($attackActive eq $True){
 		$bid = $1;
-		bpause($1,10000);
+		#bpause($currentBid,5000);
 		$bUser = beacon_info($bid, "user");
 		$bComputer = beacon_info($bid, "computer");
 		bnote($bid, "ANGRYPUPPY");
