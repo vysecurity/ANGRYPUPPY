@@ -1,0 +1,354 @@
+{
+  "nodes": [
+    {
+      "id": 265801,
+      "type": "User",
+      "label": "DCONNER@RASTALABS.LOCAL",
+      "glyphs": {},
+      "folded": {
+        "nodes": {},
+        "edges": {}
+      },
+      "x": 955.7188557493864,
+      "y": 1209.9130699804928,
+      "type_user": true,
+      "size": 5,
+      "degree": 2,
+      "icon": {
+        "font": "FontAwesome",
+        "content": "",
+        "scale": 1.5,
+        "color": "#17E625"
+      },
+      "fa2_x": -4.07666015625,
+      "fa2_y": 3.1846957206726074,
+      "dn_x": null,
+      "dn_y": null,
+      "dn_size": 19.289712886816485,
+      "dn": null
+    },
+    {
+      "id": 265802,
+      "type": "Group",
+      "label": "IT SECURITY@RASTALABS.LOCAL",
+      "glyphs": {},
+      "folded": {
+        "nodes": {},
+        "edges": {}
+      },
+      "x": 859.8181945150374,
+      "y": 854.4150452574276,
+      "type_group": true,
+      "size": 5,
+      "degree": 2,
+      "icon": {
+        "font": "FontAwesome",
+        "content": "",
+        "scale": 1.5,
+        "color": "#DBE617"
+      },
+      "fa2_x": -5.010250091552734,
+      "fa2_y": -0.2760664224624634,
+      "dn_x": null,
+      "dn_y": null,
+      "dn_size": 19.289712886816485,
+      "dn": null
+    },
+    {
+      "id": 265806,
+      "type": "User",
+      "label": "GBARNES@RASTALABS.LOCAL",
+      "glyphs": {},
+      "folded": {
+        "nodes": {},
+        "edges": {}
+      },
+      "x": 1682.722382514878,
+      "y": 699.5224579778034,
+      "type_user": true,
+      "size": 5,
+      "degree": 2,
+      "icon": {
+        "font": "FontAwesome",
+        "content": "",
+        "scale": 1.5,
+        "color": "#17E625"
+      },
+      "fa2_x": 3.0006964206695557,
+      "fa2_y": -1.7839409112930298,
+      "dn_x": null,
+      "dn_y": null,
+      "dn_size": 19.289712886816485,
+      "dn": null
+    },
+    {
+      "id": 265807,
+      "type": "Group",
+      "label": "DESKTOP SUPPORT@RASTALABS.LOCAL",
+      "glyphs": {},
+      "folded": {
+        "nodes": {},
+        "edges": {}
+      },
+      "x": 1591.2712605867473,
+      "y": 1042.9117555891016,
+      "type_group": true,
+      "size": 5,
+      "degree": 2,
+      "icon": {
+        "font": "FontAwesome",
+        "content": "",
+        "scale": 1.5,
+        "color": "#DBE617"
+      },
+      "fa2_x": 2.1104226112365723,
+      "fa2_y": 1.5589431524276733,
+      "dn_x": null,
+      "dn_y": null,
+      "dn_size": 19.289712886816485,
+      "dn": null
+    },
+    {
+      "id": 265826,
+      "type": "User",
+      "label": "CANDERSON@RASTALABS.LOCAL",
+      "glyphs": {
+        "0": {
+          "position": "bottom-right",
+          "font": "FontAwesome",
+          "content": "",
+          "fillColor": "#3399FF",
+          "fontScale": 1.5
+        }
+      },
+      "folded": {
+        "nodes": {},
+        "edges": {}
+      },
+      "x": 1635.431642017722,
+      "y": 66.4668682061897,
+      "start": true,
+      "type_user": true,
+      "size": 1,
+      "degree": 1,
+      "icon": {
+        "font": "FontAwesome",
+        "content": "",
+        "scale": 1.5,
+        "color": "#17E625"
+      },
+      "fa2_x": 2.5403225421905518,
+      "fa2_y": -7.946717262268066,
+      "dn_x": null,
+      "dn_y": null,
+      "dn_size": 11.573827732089892,
+      "dn": null
+    },
+    {
+      "id": 265833,
+      "type": "Computer",
+      "label": "RLAB-DESKTOP05.RASTALABS.LOCAL",
+      "glyphs": {},
+      "folded": {
+        "nodes": {},
+        "edges": {}
+      },
+      "x": 1310.7271411759837,
+      "y": 1320.5331317938103,
+      "type_computer": true,
+      "size": 5,
+      "degree": 2,
+      "icon": {
+        "font": "FontAwesome",
+        "content": "",
+        "scale": 1.2,
+        "color": "#E67873"
+      },
+      "fa2_x": -0.6206656098365784,
+      "fa2_y": 4.261578559875488,
+      "dn_x": null,
+      "dn_y": null,
+      "dn_size": 19.289712886816485,
+      "dn": null
+    },
+    {
+      "id": 265839,
+      "type": "Computer",
+      "label": "RLAB-DESKTOP01.RASTALABS.LOCAL",
+      "glyphs": {},
+      "folded": {
+        "nodes": {},
+        "edges": {}
+      },
+      "x": 1700.1818054849628,
+      "y": 345.07933171157583,
+      "type_computer": true,
+      "size": 5,
+      "degree": 2,
+      "icon": {
+        "font": "FontAwesome",
+        "content": "",
+        "scale": 1.2,
+        "color": "#E67873"
+      },
+      "fa2_x": 3.170663356781006,
+      "fa2_y": -5.234433650970459,
+      "dn_x": null,
+      "dn_y": null,
+      "dn_size": 19.289712886816485,
+      "dn": null
+    },
+    {
+      "id": 265846,
+      "type": "Computer",
+      "label": "RLAB-SCM01.RASTALABS.LOCAL",
+      "glyphs": {
+        "0": {
+          "position": "bottom-right",
+          "font": "FontAwesome",
+          "fillColor": "#990000",
+          "content": "",
+          "fontScale": 1.5
+        }
+      },
+      "folded": {
+        "nodes": {},
+        "edges": {}
+      },
+      "x": 901.0524223759212,
+      "y": 572.3208143672396,
+      "end": true,
+      "type_computer": true,
+      "size": 1,
+      "degree": 1,
+      "icon": {
+        "font": "FontAwesome",
+        "content": "",
+        "scale": 1.2,
+        "color": "#E67873"
+      },
+      "fa2_x": -4.6088361740112305,
+      "fa2_y": -3.022244930267334,
+      "dn_x": null,
+      "dn_y": null,
+      "dn_size": 11.573827732089892,
+      "dn": null
+    }
+  ],
+  "edges": [
+    {
+      "id": 4668762,
+      "type": "tapered",
+      "source": 265801,
+      "target": 265802,
+      "label": "MemberOf",
+      "size": 1
+    },
+    {
+      "id": 4668767,
+      "type": "tapered",
+      "source": 265806,
+      "target": 265807,
+      "label": "MemberOf",
+      "size": 1
+    },
+    {
+      "id": 4668819,
+      "type": "tapered",
+      "source": 265833,
+      "target": 265801,
+      "label": "HasSession",
+      "size": 1
+    },
+    {
+      "id": 4668826,
+      "type": "tapered",
+      "source": 265826,
+      "target": 265839,
+      "label": "AdminTo",
+      "size": 1
+    },
+    {
+      "id": 4668833,
+      "type": "tapered",
+      "source": 265807,
+      "target": 265833,
+      "label": "AdminTo",
+      "size": 1
+    },
+    {
+      "id": 4668845,
+      "type": "tapered",
+      "source": 265802,
+      "target": 265846,
+      "label": "AdminTo",
+      "size": 1
+    },
+    {
+      "id": 4668877,
+      "type": "tapered",
+      "source": 265839,
+      "target": 265806,
+      "label": "HasSession",
+      "size": 1
+    }
+  ],
+  "spotlight": {
+    "265801": [
+      "DCONNER@RASTALABS.LOCAL",
+      0,
+      "",
+      "User",
+      ""
+    ],
+    "265802": [
+      "IT SECURITY@RASTALABS.LOCAL",
+      0,
+      "",
+      "Group",
+      ""
+    ],
+    "265806": [
+      "GBARNES@RASTALABS.LOCAL",
+      0,
+      "",
+      "User",
+      ""
+    ],
+    "265807": [
+      "DESKTOP SUPPORT@RASTALABS.LOCAL",
+      0,
+      "",
+      "Group",
+      ""
+    ],
+    "265826": [
+      "CANDERSON@RASTALABS.LOCAL",
+      0,
+      "",
+      "User",
+      ""
+    ],
+    "265833": [
+      "RLAB-DESKTOP05.RASTALABS.LOCAL",
+      0,
+      "",
+      "Computer",
+      ""
+    ],
+    "265839": [
+      "RLAB-DESKTOP01.RASTALABS.LOCAL",
+      0,
+      "",
+      "Computer",
+      ""
+    ],
+    "265846": [
+      "RLAB-SCM01.RASTALABS.LOCAL",
+      0,
+      "",
+      "Computer",
+      ""
+    ]
+  }
+}

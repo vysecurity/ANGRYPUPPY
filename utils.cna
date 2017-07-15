@@ -1,0 +1,62 @@
+# Utils.cna
+# Contains utility functions
+#
+# Authors: Calvin Hedler (@001SPARTaN) and Vincent Yiu (@vysecurity)
+
+alias bhUserToCS {
+    bhUserToCS-sub($2);
+}
+
+beacon_command_register("bhUserToCS", "Obtains a set of cypher queries for visualisations from current active beacons",
+                        "Synopsis: cypher\n\n" .
+                        "Obtains a set of cypher queries for visualisations from current active beacons\nOutputs to event log");
+
+sub bhUserToCS-sub {
+	$user = $1;
+
+	$user = split("@", $user)[0];
+
+	return $user;
+}
+
+sub bhComputerToCS-sub{
+	
+	$computer = $1;
+	$computer = split('\.', $computer)[0];
+
+	return $computer;
+}
+
+on heartbeat_5s {
+	
+	if ($attackActive eq $True){
+		if ($mimikatz eq $True){
+			#bpause($currentBid, 5000);
+			foreach $cred (credentials()){
+				if (uc($cred["user"]) eq $nextLabel){
+					# Check if it's the target one we want
+					$waitFor = uc($nextLabel);
+				}
+
+			}
+		}
+	}
+}
+
+on beacon_initial {
+	# Check ID
+
+	# $1 is beacon ID that came in
+
+	if ($attackActive eq $True){
+		$bid = $1;
+		#bpause($currentBid,5000);
+		$bUser = beacon_info($bid, "user");
+		$bComputer = beacon_info($bid, "computer");
+		bnote($bid, "ANGRYPUPPY" . $randomPuppy);
+		if (uc($bComputer) eq $nextLabel){
+
+			$waitFor = uc($nextLabel);
+		}
+	}
+}
