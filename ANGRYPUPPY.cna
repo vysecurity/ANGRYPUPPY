@@ -15,7 +15,7 @@ include(script_resource("utils.cna"));
 
 # Ordered array with attack path in format
 # @(@(%node, relationship), @(%node, relationship), @(%lastnode))
-global('@relationships @edges @nodes @final $waitFor $currentBid $nextLabel $True $False $attackActive $pos $listener $psexec $mimikatz');
+global('@relationships @edges @nodes @final $waitFor $currentBid $nextLabel $True $False $attackActive $pos $listener $psexec $mimikatz $randomPuppy');
 
 sub parseNodes {
     local('$json');
@@ -226,6 +226,14 @@ sub parseGraph {
     	$listener = $1;
         $psexec = $False;
         $mimikatz = $False;
+        @rSet = @("a","b","c","d","e","f","g","h","i","j","k","l","m","n","o","p","q","r","s","t","u","v","w","x","y","z","0","1","2","3","4","5","6","7","8","9");
+
+        $rString = "";
+        for ($x = 0; $x lt 7; $x++){
+            $rString = $rString . rand(@rSet);
+        }
+
+        $randomPuppy = "[". $rString . "]";
 
         # Reset waitFor
         $waitFor = "";
@@ -262,7 +270,7 @@ on heartbeat_1s{
 		    	foreach $session (beacons()) {
                     $comp = $session["computer"];
                     $note = $session["note"];
-					if (($comp eq $nextLabel) && ($note eq "ANGRYPUPPY")) {
+					if (($comp eq $nextLabel) && ($note eq "ANGRYPUPPY" . $randomPuppy)) {
 						$currentBid = $session["id"];
 						break;
 					}
