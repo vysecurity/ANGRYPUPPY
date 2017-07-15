@@ -379,4 +379,5 @@ on heartbeat_1s{
 		}
     }	# End $AttackActive
 }
+
 parseGraph(getFileProper(script_resource("graphs"), "graph4.json"));
