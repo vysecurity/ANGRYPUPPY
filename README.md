@@ -45,6 +45,11 @@ With a valid attack path displayed in BloodHound, you must export this to a json
 
 After that, simply run the `angrypuppy` beacon alias in any of your active sessions. ANGRYPUPPY will parse the BloodHound attack path, and automatically execute, based on the nodes in the attack path. For every User node, ANGRYPUPPY will run Mimikatz on the last Computer node, and for every Computer node, ANGRYPUPPY will use the last User node's credentials and psexec to the next Computer node. We're planning on adding additional functionality to change how ANGRYPUPPY performs lateral movement, to allow for other movement options.
 
+Video:
+------
+ANGRYPUPPY - Development:
+https://youtu.be/smKYfi8vBCQ
+
 To-do:
 ------
 
