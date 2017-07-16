@@ -27,20 +27,17 @@ Getting Started:
 ANGRYPUPPY is a tool for BloodHound attack path execution in Cobalt Strike.
 
 Before you use ANGRYPUPPY, you will require several things:
-- Cobalt Strike
--- https://cobaltstrike.com
-- BloodHound
--- https://github.com/BloodHoundAD/BloodHound
-- The org.json library
---https://mvnrepository.com/artifact/org.json/json
+- Cobalt Strike -- https://cobaltstrike.com
+- BloodHound -- https://github.com/BloodHoundAD/BloodHound
+- The org.json library -- https://mvnrepository.com/artifact/org.json/json
 
-Once you have obtained these, clone the ANGRYPUPPY repository. Due to limitations in Aggressor's Java import, you need to make one change to the file.
+Once you have obtained these, clone the ANGRYPUPPY repository. Due to limitations in Aggressor's Java import, you need to make one change to the ANGRYPUPPY.cna file:
 
 `import org.json.* from: /path/to/org.json.jar;`
 
 Once you have made this change, you're ready to get started.
 
-ANGRYPUPPY assumes that you will have a foothold on the target network. Once you have a foothold on the target network, run BloodHound collection, and import the data into BloodHound. After that, you must identify the attack path that you wish to use, for which purpose we've included the `cypher` beacon alias. Typing `cypher`` will generate Cypher queries for all the users and computers that you have access to in Cobalt Strike, and post them to the **event log**. If any of these users or computers have a valid attack path to Domain Admin, these Cypher queries will return the best path. Paste the appropriate Cypher query into BloodHound's "raw query" field, and you will see the attack path displayed.
+ANGRYPUPPY assumes that you will have a foothold on the target network. Once you have a foothold on the target network, run BloodHound collection, and import the data into BloodHound. After that, you must identify the attack path that you wish to use, for which purpose we've included the `cypher` beacon alias. Typing `cypher` will generate Cypher queries for all the users and computers that you have access to in Cobalt Strike, and post them to the **event log**. If any of these users or computers have a valid attack path to Domain Admin, these Cypher queries will return the best path. Paste the appropriate Cypher query into BloodHound's "raw query" field, and you will see the attack path displayed.
 
 With a valid attack path displayed in BloodHound, you must export this to a json file, so that ANGRYPUPPY can import it. This file can go anywhere, and ANGRYPUPPY will prompt you for it when you run the command.
 
