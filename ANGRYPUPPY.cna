@@ -7,7 +7,7 @@
 
 # org.json from https://mvnrepository.com/artifact/org.json/json
 # Documentation - https://stleary.github.io/JSON-java/
-import org.json.* from: /Users/vysec/Desktop/Tools/ANGRYPUPPY/json.jar;
+import org.json.* from: /Users/chedler/tools/ANGRYPUPPY/json/json.jar;
 include(script_resource("cypher.cna"));
 include(script_resource("utils.cna"));
 
@@ -376,7 +376,7 @@ sub angryPuppy {
         $machineNo = 0;
 
         $attackActive = $True;
-        elog("[*] ANGRYPUPPY activated: $randomPuppy - $operator");
+        elog("[*] ANGRYPUPPY activated: $randomPuppy");
 
         $pos = 0;
     }, $bids => $1));
