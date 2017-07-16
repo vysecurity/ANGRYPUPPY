@@ -15,7 +15,7 @@ include(script_resource("utils.cna"));
 
 # Ordered array with attack path in format
 # @(@(%node, relationship), @(%node, relationship), @(%lastnode))
-global('@edges @nodes @final $waitFor $currentBid $nextLabel $True $False $attackActive $pos $listener $psexec $mimikatz $randomPuppy $operator');
+global('@edges @nodes @final $waitFor $currentBid $nextLabel $True $False $attackActive $pos $listener $psexec $mimikatz $randomPuppy $operator $machineNo');
 
 sub parseNodes {
     local('$json');
@@ -249,7 +249,7 @@ sub lateralMove {
         foreach $session (beacons()) {
             $comp = $session["computer"];
             $note = $session["note"];
-            if (($comp eq $nextLabel) && ($note eq "ANGRYPUPPY" . $randomPuppy . " - " . ($pos + 1))) {
+            if (($comp eq $nextLabel) && ($note eq "ANGRYPUPPY" . $randomPuppy . " - " . ($machineNo))) {
                 $currentBid = $session["id"];
                 break;
             }
@@ -373,6 +373,7 @@ sub angryPuppy {
 
         # Reset waitFor
         $waitFor = "";
+        $machineNo = 0;
 
         $attackActive = $True;
         elog("[*] ANGRYPUPPY activated: $randomPuppy - $operator");
