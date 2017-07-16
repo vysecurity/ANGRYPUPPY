@@ -15,7 +15,7 @@ include(script_resource("utils.cna"));
 
 # Ordered array with attack path in format
 # @(@(%node, relationship), @(%node, relationship), @(%lastnode))
-global('@edges @nodes @final $waitFor $currentBid $nextLabel $True $False $attackActive $pos $listener $psexec $mimikatz $randomPuppy');
+global('@edges @nodes @final $waitFor $currentBid $nextLabel $True $False $attackActive $pos $listener $psexec $mimikatz $randomPuppy $operator');
 
 sub parseNodes {
     local('$json');
@@ -375,7 +375,7 @@ sub angryPuppy {
         $waitFor = "";
 
         $attackActive = $True;
-        elog("[*] ANGRYPUPPY activated: $randomPuppy");
+        elog("[*] ANGRYPUPPY activated: $randomPuppy - $operator");
 
         $pos = 0;
     }, $bids => $1));
@@ -404,3 +404,10 @@ alias angrypuppy {
 $True = "True";
 $False = "False";
 #$attackActive = $False;
+$operator = "";
+
+on event_join {
+	if ($operator eq ""){
+		$operator = $1;
+	}
+}

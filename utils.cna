@@ -43,6 +43,11 @@ on heartbeat_5s {
 	}
 }
 
+on event_join {
+	println("Event Join");
+	println($1);
+}
+
 on beacon_initial {
 	# Check ID
 
