@@ -7,7 +7,7 @@
 
 # org.json from https://mvnrepository.com/artifact/org.json/json
 # Documentation - https://stleary.github.io/JSON-java/
-import org.json.* from: /Users/chedler/tools/ANGRYPUPPY/json.jar;
+import org.json.* from: /Users/vysec/Desktop/Tools/ANGRYPUPPY/json.jar;
 include(script_resource("cypher.cna"));
 include(script_resource("utils.cna"));
 
@@ -249,7 +249,7 @@ sub lateralMove {
         foreach $session (beacons()) {
             $comp = $session["computer"];
             $note = $session["note"];
-            if (($comp eq $nextLabel) && ($note eq "ANGRYPUPPY" . $randomPuppy)) {
+            if (($comp eq $nextLabel) && ($note eq "ANGRYPUPPY" . $randomPuppy . " - " . ($pos + 1))) {
                 $currentBid = $session["id"];
                 break;
             }
