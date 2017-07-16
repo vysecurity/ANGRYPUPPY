@@ -15,6 +15,9 @@ Beta Testers:
 * merrillmatt011
 * plissken
 * benheise
+* nuttsmare
+
+And more! We had initially attempted to keep track but now there's way too many of you :)
 
 Change Log:
 -----------
