@@ -1,4 +1,7 @@
-# ANGRYPUPPY - Bloodhound Attack Path Execution for Cobalt Strike
+# ANGRYPUPPY
+------------
+
+Bloodhound Attack Path Execution for Cobalt Strike
 
 Authors: 
 --------
