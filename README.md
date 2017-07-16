@@ -13,6 +13,8 @@ Beta Testers:
 * rasta_mouse
 * st3r30byt3
 * merrillmatt011
+* plissken
+* benheise
 
 Change Log:
 -----------
