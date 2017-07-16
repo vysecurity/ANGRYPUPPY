@@ -58,7 +58,7 @@ on beacon_initial {
 		#bpause($currentBid,5000);
 		$bUser = beacon_info($bid, "user");
 		$bComputer = beacon_info($bid, "computer");
-		bnote($bid, "ANGRYPUPPY" . $randomPuppy  . " - " . $pos);
+		bnote($bid, "ANGRYPUPPY" . $randomPuppy  . " - " . ($pos + 1));
 		if (uc($bComputer) eq $nextLabel){
 
 			$waitFor = uc($nextLabel);
