@@ -7,6 +7,13 @@ Authors:
 --------
 Calvin Hedler (@001SPARTaN) and Vincent Yiu (@vysecurity)
 
+Beta Testers:
+-------------
+* bspence7337
+* rasta_mouse
+* st3r30byt3
+* merrillmatt011
+
 Change Log:
 -----------
 * [11/07/2017]: Initial push
