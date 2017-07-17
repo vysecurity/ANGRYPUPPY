@@ -216,7 +216,6 @@ sub getToken {
         println("Domain: " . $domain);
         println("User: " . $user);
         println("Password: " . $password);
-gh i
         brev2self($currentBid);
         if ($plaintext eq $True){
             println("Using PLAIN TEXT LOGIN");
