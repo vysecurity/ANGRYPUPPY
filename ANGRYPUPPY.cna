@@ -7,7 +7,7 @@
 
 # org.json from https://mvnrepository.com/artifact/org.json/json
 # Documentation - https://stleary.github.io/JSON-java/
-import org.json.* from: /Users/vysec/Desktop/Tools/ANGRYPUPPY/json/json.jar;
+import org.json.* from: {{PATH}};
 include(script_resource("cypher.cna"));
 include(script_resource("utils.cna"));
 #include(script_resource("com-exec.cna"));
