@@ -7,6 +7,11 @@ Authors:
 --------
 Calvin Hedler (@001SPARTaN) and Vincent Yiu (@vysecurity)
 
+Special Thanks:
+---------------
+* armitagehacker: Raphael Mudge for the COBALTSTRIKE framework
+* wald0: Andy Robbins: Large amounts of assistance with Cypher queries
+
 Beta Testers:
 -------------
 * bspence7337
