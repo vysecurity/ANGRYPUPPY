@@ -7,7 +7,7 @@
 
 # org.json from https://mvnrepository.com/artifact/org.json/json
 # Documentation - https://stleary.github.io/JSON-java/
-import org.json.* from: /Users/chedler/tools/ANGRYPUPPY/json/json.jar;
+import org.json.* from: /Users/vysec/Desktop/Tools/ANGRYPUPPY/json/json.jar;
 include(script_resource("cypher.cna"));
 include(script_resource("utils.cna"));
 
@@ -15,7 +15,7 @@ include(script_resource("utils.cna"));
 
 # Ordered array with attack path in format
 # @(@(%node, relationship), @(%node, relationship), @(%lastnode))
-global('@edges @nodes @final $waitFor $currentBid $nextLabel $True $False $attackActive $pos $listener $psexec $mimikatz $randomPuppy $operator $machineNo');
+global('@edges @nodes @final $waitFor $currentBid $nextLabel $True $False $attackActive $pos $listener $psexec $mimikatz $randomPuppy $machineNo');
 
 sub parseNodes {
     local('$json');
@@ -390,7 +390,12 @@ on heartbeat_1s{
 }
 
 alias angrypuppy {
+
 	prompt_file_open("Choose a JSON file", "graph.json", false, {
+        @final = @();
+        @nodes = @();
+        @edges = @();
+        
 		$path = $1;
 		$path = strrep($path, "\\", "/");
 		$path = strrep($path, "C:", "");
@@ -405,10 +410,3 @@ alias angrypuppy {
 $True = "True";
 $False = "False";
 #$attackActive = $False;
-$operator = "";
-
-on event_join {
-	if ($operator eq ""){
-		$operator = $1;
-	}
-}
