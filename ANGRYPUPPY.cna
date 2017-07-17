@@ -337,6 +337,42 @@ sub executeAttack {
     }
 }
 
+sub apGUI {
+    $bid = $1;
+
+
+    $dialog = dialog("ANGRYPUPPY", %(jsonFile => $jsonFile, listenerChoice => $listenerChoice, lateralMethod => $lateralMethod), lambda({
+        # save config
+        $jsonFile = $3['jsonFile'];
+        $listenerChoice = $3['listenerChoice'];
+        $lateralMethod = $3['lateralMethod'];
+
+        if ($2 eq 'Run'){
+            @final = @();
+            @nodes = @();
+            @edges = @();
+
+            $path = $jsonFile;
+            $path = strrep($path, "\\", "/");
+            $path = strrep($path, "C:", "");
+            println($path);
+
+            parseGraph($jsonFile);
+
+            angryPuppy();
+        }
+                                                                                                                                        }));
+
+    dialog_description($dialog, "Specify the JSON attack path file, listener to use and lateral movement method");
+    drow_file($dialog, "jsonFile", "JSON File: ");
+    drow_listener_stage($dialog, "listenerChoice", "Listener: ");
+    drow_combobox($dialog, "lateralMethod", "Lateral Movement: ", @("PSEXEC_PSH", "WMI","WINRM", "PSEXEC")); #"COMEXEC"
+
+    dbutton_action($dialog, "Run");
+    dbutton_action($dialog, "Cancel");
+    dialog_show($dialog);
+}
+
 sub angryPuppy {
     # Set currentBid to first node
     # If Start node is a computer
@@ -372,7 +408,6 @@ sub angryPuppy {
         }
     }
 
-    elog("[*] CurrentBid is $currentBid");
 
     $AttackActive = $False;
 
@@ -405,7 +440,7 @@ sub angryPuppy {
 
 
     $listener = $listenerChoice;
-    
+
     $psexec = $False;
     $mimikatz = $False;
     @rSet = @("a","b","c","d","e","f","0","1","2","3","4","5","6","7","8","9");
@@ -422,12 +457,13 @@ sub angryPuppy {
 
     $attackActive = $True;
     elog("[*] ANGRYPUPPY activated: $randomPuppy");
+    elog("[*] Using $lateralMethod");
+    elog("[*] CurrentBid is $currentBid");
 
     $pos = 0;
 }
 
 on heartbeat_1s{
-	
     if ($attackActive eq $True){
         executeAttack();
     }	# End $AttackActive
@@ -442,41 +478,7 @@ alias angrypuppykill {
 	$attackActive = $False;
 }
 
-sub apGUI {
-	$bid = $1;
 
-
-	$dialog = dialog("ANGRYPUPPY", %(jsonFile => $jsonFile, listenerChoice => $listenerChoice, lateralMethod => $lateralMethod), lambda({
-		# save config
-		$jsonFile = $3['jsonFile'];
-		$listenerChoice = $3['listenerChoice'];
-		$lateralMethod = $3['lateralMethod'];
-
-		if ($2 eq 'Run'){
-			@final = @();
-	        @nodes = @();
-	        @edges = @();
-
-			$path = $jsonFile;
-			$path = strrep($path, "\\", "/");
-			$path = strrep($path, "C:", "");
-			println($path);
-			
-			parseGraph($jsonFile);
-
-			angryPuppy();
-		}
-	}));
-
-	dialog_description($dialog, "Specify the JSON attack path file, listener to use and lateral movement method");
-	drow_file($dialog, "jsonFile", "JSON File: ");
-	drow_listener_stage($dialog, "listenerChoice", "Listener: ");
-	drow_combobox($dialog, "lateralMethod", "Lateral Movement: ", @("PSEXEC_PSH", "WMI","WINRM", "PSEXEC")); #"COMEXEC"
-
-	dbutton_action($dialog, "Run");
-	dbutton_action($dialog, "Cancel");
-	dialog_show($dialog);
-}
 
 $True = "True";
 $False = "False";
