@@ -3,7 +3,6 @@
 #
 # Authors: Calvin Hedler (@001SPARTaN) and Vincent Yiu (@vysecurity)
 #
-# TODO: How to capture relationships - http://sleep.dashnine.org/manual/datastruct.html#3 ?
 
 # org.json from https://mvnrepository.com/artifact/org.json/json
 # Documentation - https://stleary.github.io/JSON-java/
@@ -16,7 +15,7 @@ include(script_resource("utils.cna"));
 
 # Ordered array with attack path in format
 # @(@(%node, relationship), @(%node, relationship), @(%lastnode))
-global('@edges @nodes @final $waitFor $currentBid $nextLabel $True $False $attackActive $pos $listener $psexec $mimikatz $randomPuppy $machineNo $jsonFile $lateralMethod $listenerChoice');
+global('@edges @nodes @final $waitFor $currentBid $nextLabel $True $False $attackActive $pos $listener $psexec $mimikatz $randomPuppy $machineNo $jsonFile $lateralMethod $listenerChoice $operator');
 
 sub parseNodes {
     local('$json');
@@ -456,7 +455,7 @@ sub angryPuppy {
     $machineNo = 0;
 
     $attackActive = $True;
-    elog("[*] ANGRYPUPPY activated: $randomPuppy");
+    elog("[*] ANGRYPUPPY activated by $operator" . ": $randomPuppy");
     elog("[*] Using $lateralMethod");
     elog("[*] CurrentBid is $currentBid");
 
@@ -469,16 +468,19 @@ on heartbeat_1s{
     }	# End $AttackActive
 }
 
-alias angrypuppy {
+on beacon_input {
+    if ($3 eq "angrypuppy") {
+        $operator = $2;
+    }
+}
 
+alias angrypuppy {
 	apGUI($1);
 }
 
 alias angrypuppykill {
 	$attackActive = $False;
 }
-
-
 
 $True = "True";
 $False = "False";
