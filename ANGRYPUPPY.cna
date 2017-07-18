@@ -209,7 +209,7 @@ sub getToken {
     foreach $cred (credentials()){
         println("Comparing " . $cred["user"] . " vs. " . $nextLabel);
         # Check if password is hashed or plaintext
-        if (($nextLabel eq uc($cred["user"])) && ($cred["password"] !ismatch "[0-9a-f]{32}")) {
+        if (($nextLabel eq uc($cred["user"])) && ($cred["password"] !ismatch "[0-9a-f]{32}") && ($cred["source"] eq "mimikatz")) {
             # Current $Cred object 
             $targetCreds = $cred;
             $plaintext = $True;
@@ -219,7 +219,7 @@ sub getToken {
     # Plaintext found? If not, let's go for a look at finding hashes.
     if ($plaintext eq $False){
         foreach $cred (credentials()){
-            if ($nextLabel eq uc($cred["user"])) {
+            if (($nextLabel eq uc($cred["user"])) && ($cred["source"] eq "mimikatz")) {
                 # Current $Cred object 
                 $targetCreds = $cred;
                 $hashes = $True;
