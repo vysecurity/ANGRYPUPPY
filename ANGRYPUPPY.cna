@@ -205,7 +205,7 @@ sub getToken {
     # We got the set of credentials we need in the cred store, we want to grab it out now.
 
     $plaintext = $False;
-    $hashes = $False
+    $hashes = $False;
     $realmFound = $False;
 
     # realm checks
