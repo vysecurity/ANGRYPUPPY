@@ -36,33 +36,30 @@ Getting Started:
 -----------
 ANGRYPUPPY is a tool for BloodHound attack path execution in Cobalt Strike.
 
-Before you use ANGRYPUPPY, you will require several things:
+Before you use ANGRYPUPPY, you will require two things:
 - Cobalt Strike -- https://cobaltstrike.com
 - BloodHound -- https://github.com/BloodHoundAD/BloodHound
-- The org.json library -- https://mvnrepository.com/artifact/org.json/json
 
-Once you have obtained these, clone the ANGRYPUPPY repository. Due to limitations in Aggressor's Java import, you need to make one change to the ANGRYPUPPY.cna file:
+Once you have obtained these, clone the ANGRYPUPPY repository. Due to limitations in Aggressor's Java import, we have included PowerShell and Linux/MacOS shell scripts to make the appropriate changes to the path we are importing json.jar from.
 
-`import org.json.* from: /path/to/org.json.jar;`
-
-Once you have made this change, you're ready to get started.
+Once you have run the appropriate script for your operating system, you're ready to get started.
 
 ANGRYPUPPY assumes that you will have a foothold on the target network. Once you have a foothold on the target network, run BloodHound collection, and import the data into BloodHound. After that, you must identify the attack path that you wish to use, for which purpose we've included the `cypher` beacon alias. Typing `cypher` will generate Cypher queries for all the users and computers that you have access to in Cobalt Strike, and post them to the **event log**. If any of these users or computers have a valid attack path to Domain Admin, these Cypher queries will return the best path. Paste the appropriate Cypher query into BloodHound's "raw query" field, and you will see the attack path displayed.
 
 With a valid attack path displayed in BloodHound, you must export this to a json file, so that ANGRYPUPPY can import it. This file can go anywhere, and ANGRYPUPPY will prompt you for it when you run the command.
 
-After that, simply run the `angrypuppy` beacon alias in any of your active sessions. ANGRYPUPPY will parse the BloodHound attack path, and automatically execute, based on the nodes in the attack path. For every User node, ANGRYPUPPY will run Mimikatz on the last Computer node, and for every Computer node, ANGRYPUPPY will use the last User node's credentials and psexec to the next Computer node. We're planning on adding additional functionality to change how ANGRYPUPPY performs lateral movement, to allow for other movement options.
+After that, simply run the `angrypuppy` beacon alias in any of your active sessions. ANGRYPUPPY will prompt you for the path to your graph, the lateral movement method, and the listener. ANGRYPUPPY will then parse the BloodHound attack path, and automatically execute, based on the nodes in the attack path. For every User node, ANGRYPUPPY will run Mimikatz on the last Computer node, and for every Computer node, ANGRYPUPPY will use the last User node's credentials and move to the next Computer node.
+
+Currently, ANGRYPUPPY supports psexec, psexec_psh, wmi, or winrm lateral movement methods. We are planning to add the DCOM lateral movement method in the future.
 
 Video:
 ------
 ANGRYPUPPY - Development:
-https://youtu.be/smKYfi8vBCQ
+https://youtu.be/yxQ8Q8itZao
 
 To-do:
 ------
 
 - Access Control List attack path automation with automated fixing
 - Rework to use BloodHound REST API, automate end-to-end
-- Add ability to select lateral movement method
-- Need beta testers
-
+- Implement DCOM lateral movement
