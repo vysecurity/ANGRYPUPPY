@@ -549,3 +549,12 @@ alias angrypuppykill {
 $True = "True";
 $False = "False";
 #$attackActive = $False;
+
+popup attacks {
+    item "ANGRYPUPPY" {
+        apGUI();
+    }
+    item "Stop ANGRYPUPPY" {
+        $attackActive = $False;
+    }
+}
